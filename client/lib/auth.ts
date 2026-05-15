@@ -1,37 +1,22 @@
 import type { AuthUser, BorrowerProfile } from "./api";
+import { useAuthStore } from "@/stores/auth-store";
 
-// Read JWT token from browser storage
 export function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("token");
+  return useAuthStore.getState().token;
 }
 
-// Read cached user from browser storage
 export function getStoredUser(): AuthUser | null {
-  if (typeof window === "undefined") return null;
-
-  const raw = localStorage.getItem("user");
-  if (!raw) return null;
-
-  try {
-    return JSON.parse(raw) as AuthUser;
-  } catch {
-    return null;
-  }
+  return useAuthStore.getState().user;
 }
 
-// Save user object after login/signup/profile update
 export function saveStoredUser(user: AuthUser | BorrowerProfile): void {
-  localStorage.setItem("user", JSON.stringify(user));
+  useAuthStore.getState().updateUser(user);
 }
 
-// Remove auth data on logout
 export function clearAuth(): void {
-  localStorage.removeItem("token");
-  localStorage.removeItem("user");
+  useAuthStore.getState().clearSession();
 }
 
-// Quick check if user appears logged in on client
 export function isLoggedIn(): boolean {
-  return Boolean(getToken());
+  return Boolean(useAuthStore.getState().token);
 }

@@ -5,13 +5,15 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useState } from "react";
 import { Alert, AuthCard, Field } from "@/components/auth-form";
-import { login, saveToken, saveUser } from "@/lib/api";
+import { getPostLoginPath, login } from "@/lib/api";
 import { getRedirectTarget, ROUTES } from "@/lib/navigation";
+import { useAuthStore } from "@/stores/auth-store";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = getRedirectTarget(searchParams);
+  const setSession = useAuthStore((s) => s.setSession);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,9 +27,8 @@ function LoginForm() {
 
     try {
       const data = await login(email, password);
-      saveToken(data.token);
-      saveUser(data.user);
-      router.push(redirectTo);
+      setSession(data.token, data.user);
+      router.push(getPostLoginPath(data.user, redirectTo));
     } catch (err: unknown) {
       const message =
         axios.isAxiosError(err) && err.response?.data?.message

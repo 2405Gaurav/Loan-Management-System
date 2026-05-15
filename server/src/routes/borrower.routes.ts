@@ -4,11 +4,12 @@ import {
   submitProfile,
 } from "../controllers/borrower.controller.js";
 import { authenticate } from "../middleware/auth.middleware.js";
+import { requireBorrower } from "../middleware/borrower.middleware.js";
 
 const router = Router();
 
-// All borrower routes require valid JWT
-router.use(authenticate);
+// JWT + borrower role only
+router.use(authenticate, requireBorrower);
 
 // Fetch current borrower profile and BRE status
 router.get("/profile", getProfile);

@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { AuthPromptModal } from "@/components/eligibility/auth-prompt-modal";
 import { Button } from "@/components/ui/button";
-import { isLoggedIn } from "@/lib/auth";
 import { ROUTES } from "@/lib/navigation";
+import { selectIsAuthenticated, selectIsStaff, useAuthStore } from "@/stores/auth-store";
 
 type ButtonVariant = "primary" | "outline" | "pill" | "pill-outline" | "pill-dark";
 
@@ -20,10 +20,12 @@ export function CheckEligibilityButton({
 }: Props) {
   const router = useRouter();
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const isAuthenticated = useAuthStore(selectIsAuthenticated);
+  const isStaff = useAuthStore(selectIsStaff);
 
   function handleClick() {
-    if (isLoggedIn()) {
-      router.push(ROUTES.eligibilityCheck);
+    if (isAuthenticated) {
+      router.push(isStaff ? ROUTES.dashboard : ROUTES.eligibilityCheck);
       return;
     }
     setShowAuthPrompt(true);

@@ -4,6 +4,7 @@ export const ROUTES = {
   login: "/login",
   signup: "/signup",
   eligibilityCheck: "/eligibility-check",
+  dashboard: "/dashboard",
 } as const;
 
 export const ELIGIBILITY_REDIRECT_PARAM = "redirect";

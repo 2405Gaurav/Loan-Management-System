@@ -1,21 +1,36 @@
 import type { Request, Response } from "express";
+import { UserRole } from "../models/enums.js";
 import { User } from "../models/user.model.js";
 import { generateToken } from "../utils/jwt.js";
+import { isStaffRole } from "../middleware/staff.middleware.js";
 
 function formatUser(user: {
   _id: unknown;
   email: string;
+  role?: UserRole;
   fullName?: string;
   profileCompleted?: boolean;
   brePassed?: boolean;
 }) {
+  const role = user.role ?? UserRole.BORROWER;
   return {
     id: String(user._id),
     email: user.email,
+    role,
     fullName: user.fullName ?? "",
     profileCompleted: user.profileCompleted ?? false,
     brePassed: user.brePassed ?? false,
+    isStaff: isStaffRole(role),
   };
+}
+
+// Return current session user (role used for dashboard routing)
+export async function me(req: Request, res: Response): Promise<void> {
+  if (!req.user) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  }
+  res.status(200).json({ user: formatUser(req.user) });
 }
 
 export async function signup(req: Request, res: Response): Promise<void> {
@@ -39,6 +54,7 @@ export async function signup(req: Request, res: Response): Promise<void> {
     const user = await User.create({
       email: email.toLowerCase().trim(),
       password,
+      role: UserRole.BORROWER,
     });
 
     const token = generateToken(String(user._id));

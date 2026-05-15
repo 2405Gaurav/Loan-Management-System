@@ -17,11 +17,24 @@ import {
   type SalarySlipDocument,
   getBorrowerProfile,
 } from "@/lib/api";
-import { getStoredUser, isLoggedIn, saveStoredUser } from "@/lib/auth";
 import { getLoginUrl, ROUTES } from "@/lib/navigation";
+import {
+  selectIsAuthenticated,
+  selectIsBorrower,
+  selectIsStaff,
+  useAuthStore,
+} from "@/stores/auth-store";
 
 export default function EligibilityCheckPage() {
   const router = useRouter();
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+  const isAuthenticated = useAuthStore(selectIsAuthenticated);
+  const isBorrower = useAuthStore(selectIsBorrower);
+  const isStaff = useAuthStore(selectIsStaff);
+  const user = useAuthStore((s) => s.user);
+  const updateUser = useAuthStore((s) => s.updateUser);
+  const fetchSession = useAuthStore((s) => s.fetchSession);
+
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<BorrowerProfile | null>(null);
   const [activeLoan, setActiveLoan] = useState<LoanApplication | null>(null);
@@ -33,30 +46,55 @@ export default function EligibilityCheckPage() {
       const data = await getBorrowerProfile();
       setProfile(data.user);
       setActiveLoan(data.activeLoan);
-      saveStoredUser(data.user);
+      updateUser(data.user);
     } catch (err: unknown) {
-      if (axios.isAxiosError(err) && err.response?.status === 401) {
-        router.replace(getLoginUrl(ROUTES.eligibilityCheck));
-        return;
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) {
+          router.replace(getLoginUrl(ROUTES.eligibilityCheck));
+          return;
+        }
+        if (err.response?.status === 403) {
+          router.replace(ROUTES.dashboard);
+          return;
+        }
       }
     } finally {
       setLoading(false);
     }
-  }, [router]);
+  }, [router, updateUser]);
 
   useEffect(() => {
-    if (!isLoggedIn()) {
+    if (!hasHydrated) return;
+
+    if (!isAuthenticated) {
       router.replace(getLoginUrl(ROUTES.eligibilityCheck));
       return;
     }
-    loadProfile();
-  }, [router, loadProfile]);
+
+    async function init() {
+      await fetchSession();
+
+      if (selectIsStaff(useAuthStore.getState())) {
+        router.replace(ROUTES.dashboard);
+        return;
+      }
+
+      if (!selectIsBorrower(useAuthStore.getState())) {
+        router.replace(ROUTES.login);
+        return;
+      }
+
+      await loadProfile();
+    }
+
+    init();
+  }, [hasHydrated, isAuthenticated, fetchSession, router, loadProfile]);
 
   function handleProfileUpdated(updated: BorrowerProfile, breResult: BreResponse) {
     setProfile(updated);
     setBreErrors(breResult.errors);
     setActiveLoan(breResult.activeLoan);
-    saveStoredUser(updated);
+    updateUser(updated);
   }
 
   function handleSalarySlipUploaded(doc: SalarySlipDocument) {
@@ -64,7 +102,7 @@ export default function EligibilityCheckPage() {
     if (profile) {
       const next = { ...profile, salarySlipUploaded: true };
       setProfile(next);
-      saveStoredUser(next);
+      updateUser(next);
     }
   }
 
@@ -72,7 +110,7 @@ export default function EligibilityCheckPage() {
     setActiveLoan(loan);
   }
 
-  if (loading) {
+  if (!hasHydrated || loading) {
     return (
       <main className="flex flex-1 items-center justify-center bg-white py-20">
         <p className="text-slate-600">Loading...</p>
@@ -80,7 +118,9 @@ export default function EligibilityCheckPage() {
     );
   }
 
-  const displayName = profile?.fullName || profile?.email || getStoredUser()?.email;
+  if (!isBorrower || isStaff) return null;
+
+  const displayName = profile?.fullName || profile?.email || user?.email;
   const hasActiveLoan = Boolean(activeLoan);
   const brePassed = Boolean(profile?.brePassed);
   const salaryUploaded = Boolean(profile?.salarySlipUploaded || uploadedDoc);

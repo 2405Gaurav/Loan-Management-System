@@ -1,7 +1,12 @@
 import type { Request, Response } from "express";
 import { EmploymentType } from "../models/enums.js";
 import { runBreChecks } from "../services/bre.service.js";
-import { formatLoan, getActiveLoanForBorrower } from "../services/loan.service.js";
+import {
+  formatLoan,
+  formatLoanWithPayments,
+  getActiveLoanForBorrower,
+  getLatestLoanForBorrower,
+} from "../services/loan.service.js";
 
 function formatBorrowerProfile(user: {
   _id: unknown;
@@ -36,11 +41,11 @@ export async function getProfile(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const activeLoan = await getActiveLoanForBorrower(req.user._id);
+    const latestLoan = await getLatestLoanForBorrower(req.user._id);
 
     res.status(200).json({
       user: formatBorrowerProfile(req.user),
-      activeLoan: activeLoan ? formatLoan(activeLoan) : null,
+      activeLoan: latestLoan ? await formatLoanWithPayments(latestLoan) : null,
     });
   } catch (error) {
     console.error("Get profile error:", error);

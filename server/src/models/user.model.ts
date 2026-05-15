@@ -1,12 +1,13 @@
 import bcrypt from "bcryptjs";
 import mongoose, { type HydratedDocument, type Model, Schema, Types } from "mongoose";
-import { EmploymentType } from "./enums.js";
+import { EmploymentType, UserRole } from "./enums.js";
 
 const BCRYPT_SALT_ROUNDS = 12;
 
 export interface IUser {
   email: string;
   password: string;
+  role: UserRole;
   fullName?: string;
   panNumber?: string;
   dateOfBirth?: Date;
@@ -41,6 +42,12 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
       required: [true, "Password is required"],
       minlength: [6, "Password must be at least 6 characters"],
       select: false,
+    },
+    role: {
+      type: String,
+      enum: Object.values(UserRole),
+      default: UserRole.BORROWER,
+      required: true,
     },
     fullName: { type: String, trim: true },
     panNumber: { type: String, uppercase: true, trim: true, sparse: true },

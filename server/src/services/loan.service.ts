@@ -8,6 +8,7 @@ import {
 import { calculateLoanAmounts } from "../utils/loan-calculations.js";
 import { LoanApprovalStatus, LoanStatus } from "../models/enums.js";
 import { Loan } from "../models/loan.model.js";
+import { Payment } from "../models/payment.model.js";
 import type { UserDocument } from "../models/user.model.js";
 import { DocumentType } from "../models/enums.js";
 import { Document, type DocumentRecord } from "../models/document.model.js";
@@ -26,6 +27,38 @@ export async function getActiveLoanForBorrower(borrowerId: Types.ObjectId) {
   })
     .sort({ appliedAt: -1 })
     .populate("salarySlipDocument", "originalFileName mimeType uploadedAt");
+}
+
+// Latest loan for borrower dashboard — includes closed/rejected for full history
+export async function getLatestLoanForBorrower(borrowerId: Types.ObjectId) {
+  return Loan.findOne({ borrower: borrowerId })
+    .sort({ appliedAt: -1 })
+    .populate("salarySlipDocument", "originalFileName mimeType uploadedAt");
+}
+
+export async function getPaymentsForBorrowerLoan(loanId: Types.ObjectId) {
+  const payments = await Payment.find({ loan: loanId })
+    .populate("recordedBy", "email fullName")
+    .sort({ paymentDate: 1 });
+
+  return payments.map((p) => ({
+    id: String(p._id),
+    utrNumber: p.utrNumber,
+    amount: p.amount,
+    paymentDate: p.paymentDate,
+    remainingBalanceAfterPayment: p.remainingBalanceAfterPayment,
+    recordedBy:
+      typeof p.recordedBy === "object" &&
+      p.recordedBy &&
+      "email" in p.recordedBy
+        ? String(
+            (p.recordedBy as { fullName?: string; email?: string }).fullName ||
+              (p.recordedBy as { email?: string }).email ||
+              "Collection team"
+          )
+        : "Collection team",
+    createdAt: p.createdAt,
+  }));
 }
 
 // Create a new loan application with APPLIED status
@@ -99,11 +132,15 @@ export function formatLoan(loan: {
   interestRate: number;
   simpleInterest: number;
   totalRepaymentAmount: number;
+  totalPaidAmount?: number;
   outstandingAmount: number;
   status: LoanStatus;
   approvalStatus: LoanApprovalStatus;
   rejectionReason?: string;
   appliedAt: Date;
+  sanctionedAt?: Date;
+  disbursedAt?: Date;
+  closedAt?: Date;
   salarySlipDocument?: DocumentRecord | Types.ObjectId;
 }) {
   const salaryDoc =
@@ -125,11 +162,24 @@ export function formatLoan(loan: {
     interestRate: loan.interestRate,
     simpleInterest: loan.simpleInterest,
     totalRepaymentAmount: loan.totalRepaymentAmount,
+    totalPaidAmount: loan.totalPaidAmount ?? 0,
     outstandingAmount: loan.outstandingAmount,
     status: loan.status,
     approvalStatus: loan.approvalStatus ?? LoanApprovalStatus.PENDING,
     rejectionReason: loan.rejectionReason ?? "",
     appliedAt: loan.appliedAt,
+    sanctionedAt: loan.sanctionedAt ?? null,
+    disbursedAt: loan.disbursedAt ?? null,
+    closedAt: loan.closedAt ?? null,
     salarySlipDocument: salaryDoc,
+    payments: [],
   };
+}
+
+export async function formatLoanWithPayments(
+  loan: NonNullable<Awaited<ReturnType<typeof getLatestLoanForBorrower>>>
+) {
+  const base = formatLoan(loan);
+  const payments = await getPaymentsForBorrowerLoan(loan._id);
+  return { ...base, payments };
 }

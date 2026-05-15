@@ -10,7 +10,7 @@ import {
   type EmploymentType,
   submitBorrowerProfile,
 } from "@/lib/api";
-import { saveStoredUser } from "@/lib/auth";
+import { useAuthStore } from "@/stores/auth-store";
 
 type Props = {
   initialProfile?: BorrowerProfile | null;
@@ -21,6 +21,7 @@ const inputClass =
   "w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100";
 
 export function BorrowerOnboardingForm({ initialProfile, onProfileUpdated }: Props) {
+  const updateUser = useAuthStore((s) => s.updateUser);
   const [fullName, setFullName] = useState(initialProfile?.fullName ?? "");
   const [panNumber, setPanNumber] = useState(initialProfile?.panNumber ?? "");
   const [dateOfBirth, setDateOfBirth] = useState(initialProfile?.dateOfBirth ?? "");
@@ -53,7 +54,7 @@ export function BorrowerOnboardingForm({ initialProfile, onProfileUpdated }: Pro
         employmentType,
       });
 
-      saveStoredUser(result.user);
+      updateUser(result.user);
       onProfileUpdated(result.user, result);
     } catch (err: unknown) {
       const message =

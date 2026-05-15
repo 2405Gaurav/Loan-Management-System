@@ -3,12 +3,16 @@
 import { motion } from "framer-motion";
 import type { LoanApplication } from "@/lib/api";
 import { formatINR } from "@/lib/loan-calculations";
+import { getLoanStatusHeadline, getLoanStatusMessage } from "@/lib/loan-status";
 
 type Props = {
   loan: LoanApplication;
 };
 
 export function LoanSummaryCard({ loan }: Props) {
+  const headline = getLoanStatusHeadline(loan);
+  const message = getLoanStatusMessage(loan);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -19,29 +23,16 @@ export function LoanSummaryCard({ loan }: Props) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-bold text-[#0a1930]">Loan application summary</h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Submitted successfully — awaiting team review
-          </p>
+          <p className="mt-1 text-sm text-slate-500">{headline}</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <span className="rounded-full bg-[#00baf2]/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#00baf2]">
-            {loan.status}
-          </span>
-          <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-amber-800">
-            {loan.approvalStatus ?? "PENDING"}
-          </span>
-        </div>
+        <span className="rounded-full bg-[#00baf2]/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#00baf2]">
+          {loan.status}
+        </span>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.15 }}
-        className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
-      >
-        Your application is <strong>Applied</strong> and <strong>Pending</strong> approval.
-        Sanction / Disbursement teams can review it in the admin queue.
-      </motion.div>
+      <p className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+        {message}
+      </p>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
         {[

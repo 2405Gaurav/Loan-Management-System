@@ -16,11 +16,15 @@ export interface ILoan {
   interestRate: number;
   simpleInterest: number;
   totalRepaymentAmount: number;
+  totalPaidAmount: number;
   outstandingAmount: number;
   status: LoanStatus;
   approvalStatus: LoanApprovalStatus;
   rejectionReason?: string;
   appliedAt: Date;
+  sanctionedAt?: Date;
+  disbursedAt?: Date;
+  closedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -68,11 +72,19 @@ const loanSchema = new Schema<ILoan, LoanModel>(
       required: true,
       min: 0,
     },
+    totalPaidAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     outstandingAmount: {
       type: Number,
       required: true,
       min: 0,
     },
+    sanctionedAt: { type: Date },
+    disbursedAt: { type: Date },
+    closedAt: { type: Date },
     status: {
       type: String,
       enum: Object.values(LoanStatus),
