@@ -6,6 +6,10 @@ import { useMemo, useState } from "react";
 import { ButtonLink } from "@/components/ui/button";
 import { useMountEntrance } from "@/hooks/use-mount-entrance";
 import { ROUTES } from "@/lib/navigation";
+import {
+  selectIsAuthenticated,
+  useAuthStore,
+} from "@/stores/auth-store";
 
 const ease: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
@@ -102,7 +106,7 @@ function Slider({
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
           className="absolute inset-0 z-[2] h-full w-full cursor-pointer opacity-0"
-        />
+          />
         <div
           className="pointer-events-none absolute top-1/2 h-5 w-5 -translate-y-1/2 rounded-full border-[3px] border-white bg-brand-600 shadow-md transition-all duration-150"
           style={{ left: `calc(${pct}% - 10px)` }}
@@ -120,6 +124,7 @@ export function Hero() {
   const ready = useMountEntrance();
   const [amount, setAmount] = useState(2_00_000);
   const [tenure, setTenure] = useState(180);
+  const isAuthenticated = selectIsAuthenticated(useAuthStore.getState());
 
   const { si, total, daily } = useMemo(() => calcLoan(amount, tenure), [amount, tenure]);
 
@@ -155,12 +160,20 @@ export function Hero() {
             </motion.div>
 
             <motion.div variants={fadeUp} className="mb-6 flex w-full flex-col gap-3 sm:mb-8 sm:flex-row sm:flex-wrap">
+              {isAuthenticated ? (
+                <ButtonLink href={ROUTES.dashboard} variant="blue" className="w-full !rounded-full sm:w-auto">
+                  Dashboard
+                </ButtonLink>
+              ) : (
+                <>
+                  <ButtonLink href={ROUTES.signup} variant="blue" className="w-full !rounded-full sm:w-auto">
+                    Get started
+                  </ButtonLink>
               <ButtonLink href={ROUTES.signup} variant="blue" className="w-full !rounded-full sm:w-auto">
-                Get started
-              </ButtonLink>
-              <ButtonLink href={ROUTES.login} variant="outline" className="w-full !rounded-full sm:w-auto">
-                Sign in
-              </ButtonLink>
+                    Sign in
+                  </ButtonLink>
+                </>
+              )}
             </motion.div>
 
             <motion.div variants={fadeUp} className="w-full max-w-full sm:max-w-[480px]">
