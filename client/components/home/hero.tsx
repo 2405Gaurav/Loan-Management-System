@@ -4,10 +4,9 @@ import { motion, type Variants } from "framer-motion";
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { ButtonLink } from "@/components/ui/button";
-import { useFirstSession } from "@/hooks/use-first-session";
+import { useMountEntrance } from "@/hooks/use-mount-entrance";
 import { ROUTES } from "@/lib/navigation";
 
-const HERO_SEEN_KEY = "hero-entered";
 const ease: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 const container: Variants = {
@@ -118,7 +117,7 @@ function Slider({
 }
 
 export function Hero() {
-  const launch = useFirstSession(HERO_SEEN_KEY);
+  const ready = useMountEntrance();
   const [amount, setAmount] = useState(2_00_000);
   const [tenure, setTenure] = useState(180);
 
@@ -133,11 +132,9 @@ export function Hero() {
     { label: "Daily Repayment", value: `${formatINR(daily)}/day`, color: "#059669", bold: true },
   ];
 
-  if (launch === "pending") {
-    return <section className="min-h-[680px] bg-white" aria-busy="true" aria-label="Loading" />;
+  if (!ready) {
+    return <section className="min-h-[680px] bg-white" aria-hidden />;
   }
-
-  const playIntro = launch === "first";
 
   return (
     <section className="relative w-full overflow-hidden bg-white font-sans">
@@ -145,8 +142,8 @@ export function Hero() {
         <motion.div
           className="grid min-h-[680px] grid-cols-1 items-start gap-8 lg:grid-cols-2 lg:gap-0"
           variants={container}
-          initial={playIntro ? "hidden" : false}
-          animate={playIntro ? "visible" : false}
+          initial="hidden"
+          animate="visible"
         >
           <div className="flex flex-col items-start py-10 lg:py-14">
             <motion.div variants={fadeUp}>
