@@ -2,12 +2,19 @@
 
 import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
+import { SalesLeadTimeline } from "@/components/dashboard/sales-lead-timeline";
 import { getSalesLeads, type SalesLead } from "@/lib/api";
+
+function currentStageLabel(lead: SalesLead): string {
+  const current = lead.timeline.find((s) => s.state === "current" || s.state === "failed");
+  return current?.label ?? "Registered";
+}
 
 export function SalesModule() {
   const [leads, setLeads] = useState<SalesLead[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -37,7 +44,8 @@ export function SalesModule() {
     <section>
       <h2 className="text-lg font-semibold text-slate-900">Sales — Lead tracking</h2>
       <p className="mt-1 text-sm text-slate-600">
-        Registered borrowers without an active loan application.
+        Pre-application borrowers: registration → BRE → salary slip → loan apply. Expand a lead
+        for the full timeline and BRE attempt history.
       </p>
 
       {leads.length === 0 ? (
@@ -45,35 +53,76 @@ export function SalesModule() {
           No leads at the moment.
         </p>
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-xl border border-slate-200 bg-white">
-          <table className="min-w-full text-left text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase text-slate-500">
-              <tr>
-                <th className="px-4 py-3">Borrower</th>
-                <th className="px-4 py-3">Profile</th>
-                <th className="px-4 py-3">BRE</th>
-                <th className="px-4 py-3">Salary slip</th>
-                <th className="px-4 py-3">Registered</th>
-              </tr>
-            </thead>
-            <tbody>
-              {leads.map((lead) => (
-                <tr key={lead.id} className="border-b border-slate-100 last:border-0">
-                  <td className="px-4 py-3">
-                    <p className="font-medium text-slate-900">{lead.fullName || "—"}</p>
+        <ul className="mt-6 space-y-3">
+          {leads.map((lead) => {
+            const isOpen = expandedId === lead.id;
+            return (
+              <li
+                key={lead.id}
+                className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
+              >
+                <button
+                  type="button"
+                  onClick={() => setExpandedId(isOpen ? null : lead.id)}
+                  className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left hover:bg-slate-50"
+                >
+                  <div>
+                    <p className="font-medium text-slate-900">
+                      {lead.fullName || "No name yet"}
+                    </p>
                     <p className="text-xs text-slate-500">{lead.email}</p>
-                  </td>
-                  <td className="px-4 py-3">{lead.profileCompleted ? "Yes" : "No"}</td>
-                  <td className="px-4 py-3">{lead.brePassed ? "Passed" : "Pending"}</td>
-                  <td className="px-4 py-3">{lead.salarySlipUploaded ? "Yes" : "No"}</td>
-                  <td className="px-4 py-3 text-slate-600">
-                    {new Date(lead.registeredAt).toLocaleDateString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-end gap-2">
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-semibold uppercase text-slate-600">
+                      {currentStageLabel(lead)}
+                    </span>
+                    <span
+                      className={`text-xs ${isOpen ? "text-brand-600" : "text-slate-400"}`}
+                    >
+                      {isOpen ? "Hide timeline" : "View timeline"}
+                    </span>
+                  </div>
+                </button>
+
+                {isOpen && (
+                  <div className="border-t border-slate-100 px-5 pb-5">
+                    <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-medium uppercase tracking-wide">
+                      <span
+                        className={`rounded px-2 py-0.5 ${
+                          lead.brePassed
+                            ? "bg-emerald-100 text-emerald-800"
+                            : lead.breHistory.length > 0
+                              ? "bg-red-100 text-red-800"
+                              : "bg-amber-100 text-amber-800"
+                        }`}
+                      >
+                        BRE:{" "}
+                        {lead.brePassed
+                          ? "Passed"
+                          : lead.breHistory.length > 0
+                            ? "Failed"
+                            : "Not started"}
+                      </span>
+                      <span
+                        className={`rounded px-2 py-0.5 ${
+                          lead.salarySlipUploaded
+                            ? "bg-emerald-100 text-emerald-800"
+                            : "bg-slate-100 text-slate-600"
+                        }`}
+                      >
+                        Slip: {lead.salarySlipUploaded ? "Uploaded" : "Pending"}
+                      </span>
+                      <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">
+                        Loan: {lead.latestLoanStatus ?? "Not applied"}
+                      </span>
+                    </div>
+                    <SalesLeadTimeline steps={lead.timeline} />
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
       )}
     </section>
   );

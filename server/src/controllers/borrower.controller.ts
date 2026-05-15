@@ -134,7 +134,28 @@ export async function submitProfile(req: Request, res: Response): Promise<void> 
       user.brePassed = false;
     }
 
-    await user.save();
+    // Store every BRE attempt for sales lead timeline
+    if (!user.breHistory) {
+      user.breHistory = [];
+    }
+    user.breHistory.push({
+      passed: breResult.passed,
+      errors: breResult.errors,
+      attemptedAt: new Date(),
+    });
+
+    try {
+      await user.save();
+    } catch (saveError: unknown) {
+      const mongoError = saveError as { code?: number; keyPattern?: { panNumber?: unknown } };
+      if (mongoError.code === 11000 && mongoError.keyPattern?.panNumber !== undefined) {
+        res.status(409).json({
+          message: "This PAN is already registered with another account.",
+        });
+        return;
+      }
+      throw saveError;
+    }
 
     const activeLoan = await getActiveLoanForBorrower(user._id);
 

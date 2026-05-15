@@ -209,6 +209,23 @@ export interface DashboardMeta {
   modules: DashboardModule[];
 }
 
+export interface BreHistoryEntry {
+  passed: boolean;
+  errors: string[];
+  attemptedAt: string;
+}
+
+export type SalesLeadStepState = "done" | "current" | "upcoming" | "failed";
+
+export interface SalesLeadTimelineStep {
+  id: string;
+  label: string;
+  state: SalesLeadStepState;
+  detail: string;
+  date: string | null;
+  breAttempts?: BreHistoryEntry[];
+}
+
 export interface SalesLead {
   id: string;
   email: string;
@@ -217,6 +234,9 @@ export interface SalesLead {
   brePassed: boolean;
   salarySlipUploaded: boolean;
   registeredAt: string;
+  breHistory: BreHistoryEntry[];
+  latestLoanStatus: LoanStatus | null;
+  timeline: SalesLeadTimelineStep[];
 }
 
 export interface OpsLoan {

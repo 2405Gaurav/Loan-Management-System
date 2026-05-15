@@ -4,6 +4,13 @@ import { EmploymentType, UserRole } from "./enums.js";
 
 const BCRYPT_SALT_ROUNDS = 12;
 
+// Each BRE attempt (pass or fail) with rejection reasons for sales visibility
+export interface IBreHistoryEntry {
+  passed: boolean;
+  errors: string[];
+  attemptedAt: Date;
+}
+
 export interface IUser {
   email: string;
   password: string;
@@ -15,6 +22,7 @@ export interface IUser {
   employmentType?: EmploymentType;
   profileCompleted: boolean;
   brePassed: boolean;
+  breHistory: IBreHistoryEntry[];
   salarySlipUploaded: boolean;
   uploadedDocuments: Types.ObjectId[];
   createdAt: Date;
@@ -50,7 +58,13 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
       required: true,
     },
     fullName: { type: String, trim: true },
-    panNumber: { type: String, uppercase: true, trim: true, sparse: true },
+    panNumber: {
+      type: String,
+      uppercase: true,
+      trim: true,
+      unique: true,
+      sparse: true,
+    },
     dateOfBirth: { type: Date },
     monthlySalary: { type: Number, min: [0, "Salary cannot be negative"] },
     employmentType: {
@@ -59,6 +73,16 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
     },
     profileCompleted: { type: Boolean, default: false },
     brePassed: { type: Boolean, default: false },
+    breHistory: {
+      type: [
+        {
+          passed: { type: Boolean, required: true },
+          errors: [{ type: String }],
+          attemptedAt: { type: Date, default: () => new Date() },
+        },
+      ],
+      default: [],
+    },
     salarySlipUploaded: { type: Boolean, default: false },
     uploadedDocuments: [
       {

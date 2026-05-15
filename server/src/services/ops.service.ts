@@ -9,6 +9,7 @@ import { Loan } from "../models/loan.model.js";
 import { Payment } from "../models/payment.model.js";
 import { User } from "../models/user.model.js";
 import type { UserDocument } from "../models/user.model.js";
+import { buildSalesLeadTimeline } from "../utils/sales-lead-timeline.js";
 
 const ACTIVE_LOAN_STATUSES = [
   LoanStatus.APPLIED,
@@ -19,7 +20,9 @@ const ACTIVE_LOAN_STATUSES = [
 // Sales: borrowers with no in-flight loan (lead tracking)
 export async function getSalesLeads() {
   const borrowers = await User.find({ role: UserRole.BORROWER })
-    .select("email fullName profileCompleted brePassed salarySlipUploaded createdAt")
+    .select(
+      "email fullName profileCompleted brePassed breHistory salarySlipUploaded createdAt"
+    )
     .sort({ createdAt: -1 })
     .lean();
 
@@ -31,21 +34,56 @@ export async function getSalesLeads() {
     .select("borrower status")
     .lean();
 
+  const latestLoans = await Loan.find({ borrower: { $in: borrowerIds } })
+    .sort({ appliedAt: -1 })
+    .lean();
+
+  const latestLoanByBorrower = new Map<string, (typeof latestLoans)[0]>();
+  for (const loan of latestLoans) {
+    const key = String(loan.borrower);
+    if (!latestLoanByBorrower.has(key)) {
+      latestLoanByBorrower.set(key, loan);
+    }
+  }
+
   const borrowersWithActiveLoan = new Set(
     activeLoans.map((l) => String(l.borrower))
   );
 
   return borrowers
     .filter((b) => !borrowersWithActiveLoan.has(String(b._id)))
-    .map((b) => ({
-      id: String(b._id),
-      email: b.email,
-      fullName: b.fullName ?? "",
-      profileCompleted: b.profileCompleted ?? false,
-      brePassed: b.brePassed ?? false,
-      salarySlipUploaded: b.salarySlipUploaded ?? false,
-      registeredAt: b.createdAt,
-    }));
+    .map((b) => {
+      const latestLoan = latestLoanByBorrower.get(String(b._id));
+      const breHistory = (b.breHistory ?? []).map((h) => ({
+        passed: h.passed,
+        errors: h.errors ?? [],
+        attemptedAt: h.attemptedAt,
+      }));
+
+      return {
+        id: String(b._id),
+        email: b.email,
+        fullName: b.fullName ?? "",
+        profileCompleted: b.profileCompleted ?? false,
+        brePassed: b.brePassed ?? false,
+        salarySlipUploaded: b.salarySlipUploaded ?? false,
+        registeredAt: b.createdAt,
+        breHistory: breHistory.map((h) => ({
+          passed: h.passed,
+          errors: h.errors,
+          attemptedAt: h.attemptedAt.toISOString(),
+        })),
+        latestLoanStatus: latestLoan?.status ?? null,
+        timeline: buildSalesLeadTimeline({
+          registeredAt: b.createdAt,
+          breHistory,
+          brePassed: b.brePassed ?? false,
+          salarySlipUploaded: b.salarySlipUploaded ?? false,
+          latestLoanStatus: latestLoan?.status ?? null,
+          latestLoanAppliedAt: latestLoan?.appliedAt ?? null,
+        }),
+      };
+    });
 }
 
 function formatLoanForOps(loan: {
