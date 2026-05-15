@@ -1,5 +1,7 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
+
 type Props = {
   question: string;
   answer: string;
@@ -9,7 +11,11 @@ type Props = {
 
 export function FaqItem({ question, answer, isOpen, onToggle }: Props) {
   return (
-    <div className="overflow-hidden rounded-xl bg-white shadow-sm">
+    <motion.div
+      layout
+      className="overflow-hidden rounded-md border border-slate-200 bg-white"
+      transition={{ layout: { duration: 0.25, ease: [0.4, 0, 0.2, 1] } }}
+    >
       <button
         type="button"
         onClick={onToggle}
@@ -18,26 +24,37 @@ export function FaqItem({ question, answer, isOpen, onToggle }: Props) {
       >
         <span
           className={`text-sm font-semibold sm:text-base ${
-            isOpen ? "text-slate-500" : "text-slate-900"
+            isOpen ? "text-brand-600" : "text-navy"
           }`}
         >
           {question}
         </span>
-        <span
-          className={`shrink-0 text-slate-400 transition-transform duration-200 ${
-            isOpen ? "rotate-180" : ""
-          }`}
+        <motion.span
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: 0.25, ease: "easeInOut" }}
+          className={`shrink-0 text-xs ${isOpen ? "text-brand-600" : "text-slate-400"}`}
           aria-hidden
         >
           ▼
-        </span>
+        </motion.span>
       </button>
 
-      {isOpen && (
-        <div className="border-t border-slate-100 px-5 pb-5 pt-1">
-          <p className="text-sm leading-relaxed text-slate-600">{answer}</p>
-        </div>
-      )}
-    </div>
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            key="content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="px-5 pb-5">
+              <p className="text-sm leading-relaxed text-slate-600">{answer}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }

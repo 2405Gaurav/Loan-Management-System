@@ -107,16 +107,7 @@ export function Hero() {
           {/* ── LEFT COLUMN ── */}
           <div className="flex flex-col items-start py-10 lg:py-14">
 
-            {/* Personal Loan Badge */}
-            <div className="mb-6 flex items-center gap-3">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#00baf2] shadow-md">
-                <span className="text-2xl font-bold text-white">₹</span>
-              </div>
-              <div className="leading-snug">
-                <p className="text-2xl font-bold text-[#0a1930]">Personal</p>
-                <p className="text-2xl font-bold text-[#0a1930]">Loan</p>
-              </div>
-            </div>
+          
 
             {/* Main Headline */}
             <h1 className="mb-6 text-[2.75rem] font-extrabold leading-[1.1] tracking-tight text-[#0a1930] sm:text-5xl lg:text-[3.2rem]">

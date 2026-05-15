@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { clearAuth, getStoredUser, isLoggedIn } from "@/lib/auth";
 import { ROUTES } from "@/lib/navigation";
+import Image from "next/image";
 
 const navLinks = [
   { label: "Home", href: ROUTES.home },
@@ -37,7 +38,7 @@ export function Navbar() {
     <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white">
       <div className="mx-auto grid h-16 max-w-6xl grid-cols-[1fr_auto_1fr] items-center px-4 sm:px-8">
         <Link href={ROUTES.home} className="text-lg font-semibold text-slate-400">
-          CreditSea
+        <Image src="/logo1.svg" alt="CreditSea" width={180} height={200} />
         </Link>
 
         <nav className="flex items-center justify-center gap-10">

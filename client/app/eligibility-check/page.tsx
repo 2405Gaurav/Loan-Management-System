@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BorrowerOnboardingForm } from "@/components/borrower-onboarding-form";
 import { PageBanner } from "@/components/layout/page-banner";
+import { AnimatedPanel } from "@/components/motion/animated-panel";
+import { ScrollReveal } from "@/components/motion/scroll-reveal";
 import {
   type BreResponse,
   type BorrowerProfile,
@@ -66,7 +68,7 @@ export default function EligibilityCheckPage() {
 
   if (loading) {
     return (
-      <main className="flex flex-1 items-center justify-center bg-section-muted py-20">
+      <main className="flex flex-1 items-center justify-center bg-white py-20">
         <p className="text-slate-600">Loading...</p>
       </main>
     );
@@ -82,19 +84,19 @@ export default function EligibilityCheckPage() {
         description="Complete your personal details to run our Business Rule Engine (BRE)."
       />
 
-      <main className="bg-section-muted px-4 py-10 sm:px-6">
+      <main className="bg-white px-4 py-10 sm:px-6">
         <div className="mx-auto max-w-3xl space-y-6">
-          {showBreSuccess && profile?.brePassed && (
-            <section className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 shadow-sm">
+          <AnimatedPanel show={showBreSuccess && !!profile?.brePassed}>
+            <section className="rounded-md border border-emerald-200 bg-emerald-50 p-6">
               <h2 className="font-semibold text-emerald-800">Eligibility approved</h2>
               <p className="mt-1 text-sm text-emerald-700">
                 You are eligible to continue loan application
               </p>
             </section>
-          )}
+          </AnimatedPanel>
 
-          {breErrors.length > 0 && !profile?.brePassed && (
-            <section className="rounded-2xl border border-red-200 bg-red-50 p-6 shadow-sm">
+          <AnimatedPanel show={breErrors.length > 0 && !profile?.brePassed}>
+            <section className="rounded-md border border-red-200 bg-red-50 p-6">
               <h2 className="font-semibold text-red-800">Eligibility check failed</h2>
               <p className="mt-1 text-sm text-red-700">
                 Please fix the following and submit again:
@@ -105,18 +107,20 @@ export default function EligibilityCheckPage() {
                 ))}
               </ul>
             </section>
-          )}
+          </AnimatedPanel>
 
-          {!profile?.brePassed ? (
-            <BorrowerOnboardingForm
-              initialProfile={profile}
-              onProfileUpdated={handleProfileUpdated}
-            />
-          ) : (
-            <section className="rounded-2xl border border-slate-100 bg-white p-8 text-center shadow-sm">
-              <p className="text-slate-600">Your profile is complete and eligible.</p>
-            </section>
-          )}
+          <ScrollReveal delay={0.1}>
+            {!profile?.brePassed ? (
+              <BorrowerOnboardingForm
+                initialProfile={profile}
+                onProfileUpdated={handleProfileUpdated}
+              />
+            ) : (
+              <section className="rounded-md border border-slate-200 bg-white p-8 text-center">
+                <p className="text-slate-600">Your profile is complete and eligible.</p>
+              </section>
+            )}
+          </ScrollReveal>
         </div>
       </main>
     </>

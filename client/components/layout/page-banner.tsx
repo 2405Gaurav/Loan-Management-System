@@ -1,3 +1,7 @@
+"use client";
+
+import { ScrollReveal } from "@/components/motion/scroll-reveal";
+
 type Props = {
   label?: string;
   title: string;
@@ -6,10 +10,10 @@ type Props = {
 
 export function PageBanner({ label, title, description }: Props) {
   return (
-    <section className="border-b border-slate-200 bg-gradient-to-b from-slate-100 to-white px-4 py-10 sm:py-12">
-      <div className="mx-auto max-w-3xl">
+    <section className="border-b border-slate-200 bg-white px-4 py-10 sm:py-12">
+      <ScrollReveal className="mx-auto max-w-3xl">
         {label && (
-          <p className="text-xs font-medium uppercase tracking-wider text-slate-500">
+          <p className="text-xs font-medium uppercase tracking-wider text-brand-600">
             {label}
           </p>
         )}
@@ -19,7 +23,7 @@ export function PageBanner({ label, title, description }: Props) {
             {description}
           </p>
         )}
-      </div>
+      </ScrollReveal>
     </section>
   );
 }

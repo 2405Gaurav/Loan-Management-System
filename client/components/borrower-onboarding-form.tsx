@@ -1,6 +1,7 @@
 "use client";
 
 import axios from "axios";
+import { motion } from "framer-motion";
 import { FormEvent, useState } from "react";
 import { Alert } from "@/components/auth-form";
 import {
@@ -66,7 +67,12 @@ export function BorrowerOnboardingForm({ initialProfile, onProfileUpdated }: Pro
   }
 
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm sm:p-8">
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      className="rounded-md border border-slate-200 bg-white p-6 sm:p-8"
+    >
       <h2 className="text-lg font-bold text-navy">Personal details</h2>
       <p className="mt-1 text-sm text-slate-500">
         Quick details to unlock your credit journey.
@@ -160,6 +166,6 @@ export function BorrowerOnboardingForm({ initialProfile, onProfileUpdated }: Pro
           {loading ? "Submitting..." : "Submit & run eligibility check"}
         </button>
       </form>
-    </div>
+    </motion.div>
   );
 }

@@ -1,3 +1,7 @@
+"use client";
+
+import { motion } from "framer-motion";
+
 type FieldProps = {
   label: string;
   id: string;
@@ -23,7 +27,11 @@ export function Field({
   minLength,
 }: FieldProps) {
   return (
-    <div>
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-slate-700">
         {label}
       </label>
@@ -37,7 +45,7 @@ export function Field({
         minLength={minLength}
         className={inputClass}
       />
-    </div>
+    </motion.div>
   );
 }
 
@@ -54,7 +62,14 @@ export function Alert({
       : "border-emerald-200 bg-emerald-50 text-emerald-700";
 
   return (
-    <p className={`rounded-lg border px-3 py-2 text-sm ${styles}`}>{message}</p>
+    <motion.p
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: "auto" }}
+      exit={{ opacity: 0, height: 0 }}
+      className={`rounded-lg border px-3 py-2 text-sm ${styles}`}
+    >
+      {message}
+    </motion.p>
   );
 }
 
@@ -68,13 +83,18 @@ export function AuthCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="w-full max-w-md rounded-2xl border border-slate-100 bg-white p-8 shadow-lg">
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-lg"
+    >
       <div className="mb-6 text-center">
         <p className="text-sm font-semibold text-slate-400">CreditSea</p>
         <h1 className="mt-2 text-2xl font-bold text-navy">{title}</h1>
         <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
       </div>
       {children}
-    </div>
+    </motion.div>
   );
 }
