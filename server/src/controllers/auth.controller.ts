@@ -2,10 +2,19 @@ import type { Request, Response } from "express";
 import { User } from "../models/user.model.js";
 import { generateToken } from "../utils/jwt.js";
 
-function formatUser(user: { _id: unknown; email: string }) {
+function formatUser(user: {
+  _id: unknown;
+  email: string;
+  fullName?: string;
+  profileCompleted?: boolean;
+  brePassed?: boolean;
+}) {
   return {
     id: String(user._id),
     email: user.email,
+    fullName: user.fullName ?? "",
+    profileCompleted: user.profileCompleted ?? false,
+    brePassed: user.brePassed ?? false,
   };
 }
 

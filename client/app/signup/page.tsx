@@ -12,21 +12,18 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
-    setSuccess("");
     setLoading(true);
 
     try {
       const data = await signup(email, password);
       saveToken(data.token);
       saveUser(data.user);
-      setSuccess(data.message);
-      setTimeout(() => router.push("/login"), 1000);
+      router.push("/");
     } catch (err: unknown) {
       const message =
         axios.isAxiosError(err) && err.response?.data?.message
@@ -66,8 +63,6 @@ export default function SignupPage() {
           />
 
           {error && <Alert type="error" message={error} />}
-          {success && <Alert type="success" message={success} />}
-
           <button
             type="submit"
             disabled={loading}

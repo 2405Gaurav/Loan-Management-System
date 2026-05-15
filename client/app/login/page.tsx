@@ -3,27 +3,27 @@
 import axios from "axios";
 import Link from "next/link";
 import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Alert, AuthCard, Field } from "@/components/auth-form";
 import { login, saveToken, saveUser } from "@/lib/api";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
-    setSuccess("");
     setLoading(true);
 
     try {
       const data = await login(email, password);
       saveToken(data.token);
       saveUser(data.user);
-      setSuccess(`Welcome back, ${data.user.email}!`);
+      router.push("/");
     } catch (err: unknown) {
       const message =
         axios.isAxiosError(err) && err.response?.data?.message
@@ -59,8 +59,6 @@ export default function LoginPage() {
           />
 
           {error && <Alert type="error" message={error} />}
-          {success && <Alert type="success" message={success} />}
-
           <button
             type="submit"
             disabled={loading}
