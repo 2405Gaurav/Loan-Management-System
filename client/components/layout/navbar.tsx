@@ -11,6 +11,7 @@ import Image from "next/image";
 const navLinks = [
   { label: "Home", href: ROUTES.home },
   { label: "FAQ", href: `${ROUTES.home}#faq` },
+  { label: "Eligibility Check", href: `${ROUTES.eligibilityCheck}` },
 ];
 
 export function Navbar() {

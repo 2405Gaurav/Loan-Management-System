@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import app from "./app.js";
+import { ensureUploadDirectories } from "./config/multer.js";
 
 dotenv.config();
 
@@ -16,6 +17,8 @@ async function startServer(): Promise<void> {
   if (!process.env.JWT_SECRET) {
     throw new Error("JWT_SECRET is not defined in environment variables");
   }
+
+  ensureUploadDirectories();
 
   await mongoose.connect(mongoUri);
   console.log("MongoDB connected");

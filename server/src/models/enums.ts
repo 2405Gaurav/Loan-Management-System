@@ -17,6 +17,13 @@ export enum LoanStatus {
   REJECTED = "REJECTED",
 }
 
+// Tracks internal approval queue for staff roles (sanction, admin, etc.)
+export enum LoanApprovalStatus {
+  PENDING = "PENDING",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED",
+}
+
 export enum EmploymentType {
   SALARIED = "SALARIED",
   SELF_EMPLOYED = "SELF_EMPLOYED",

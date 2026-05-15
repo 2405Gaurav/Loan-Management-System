@@ -1,8 +1,8 @@
 import type { Request, Response } from "express";
 import { EmploymentType } from "../models/enums.js";
 import { runBreChecks } from "../services/bre.service.js";
+import { formatLoan, getActiveLoanForBorrower } from "../services/loan.service.js";
 
-// Shape of borrower profile fields returned to frontend
 function formatBorrowerProfile(user: {
   _id: unknown;
   email: string;
@@ -13,6 +13,7 @@ function formatBorrowerProfile(user: {
   employmentType?: EmploymentType;
   profileCompleted: boolean;
   brePassed: boolean;
+  salarySlipUploaded: boolean;
 }) {
   return {
     id: String(user._id),
@@ -24,10 +25,10 @@ function formatBorrowerProfile(user: {
     employmentType: user.employmentType ?? "",
     profileCompleted: user.profileCompleted,
     brePassed: user.brePassed,
+    salarySlipUploaded: user.salarySlipUploaded,
   };
 }
 
-// GET /api/borrower/profile — fetch logged-in borrower profile state
 export async function getProfile(req: Request, res: Response): Promise<void> {
   try {
     if (!req.user) {
@@ -35,8 +36,11 @@ export async function getProfile(req: Request, res: Response): Promise<void> {
       return;
     }
 
+    const activeLoan = await getActiveLoanForBorrower(req.user._id);
+
     res.status(200).json({
       user: formatBorrowerProfile(req.user),
+      activeLoan: activeLoan ? formatLoan(activeLoan) : null,
     });
   } catch (error) {
     console.error("Get profile error:", error);
@@ -44,7 +48,6 @@ export async function getProfile(req: Request, res: Response): Promise<void> {
   }
 }
 
-// POST /api/borrower/profile — save personal details and run BRE engine
 export async function submitProfile(req: Request, res: Response): Promise<void> {
   try {
     if (!req.user) {
@@ -61,7 +64,6 @@ export async function submitProfile(req: Request, res: Response): Promise<void> 
         employmentType?: string;
       };
 
-    // Basic request validation before BRE
     if (!fullName?.trim()) {
       res.status(400).json({ message: "Full name is required" });
       return;
@@ -106,14 +108,12 @@ export async function submitProfile(req: Request, res: Response): Promise<void> 
 
     const user = req.user;
 
-    // Persist submitted personal details on user document
     user.fullName = fullName.trim();
     user.panNumber = panNumber.toUpperCase().trim();
     user.dateOfBirth = parsedDob;
     user.monthlySalary = parsedSalary;
     user.employmentType = employmentType as EmploymentType;
 
-    // Run BRE engine with assignment rules
     const breResult = runBreChecks({
       dateOfBirth: parsedDob,
       monthlySalary: parsedSalary,
@@ -122,22 +122,22 @@ export async function submitProfile(req: Request, res: Response): Promise<void> 
     });
 
     if (breResult.passed) {
-      // BRE passed: mark profile complete and eligible for loan flow
       user.profileCompleted = true;
       user.brePassed = true;
     } else {
-      // BRE failed: save details but keep flags false so user can retry
       user.profileCompleted = false;
       user.brePassed = false;
     }
 
     await user.save();
 
-    // Return BRE result in required format
+    const activeLoan = await getActiveLoanForBorrower(user._id);
+
     res.status(200).json({
       passed: breResult.passed,
       errors: breResult.errors,
       user: formatBorrowerProfile(user),
+      activeLoan: activeLoan ? formatLoan(activeLoan) : null,
     });
   } catch (error) {
     console.error("Submit profile error:", error);
