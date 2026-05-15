@@ -198,7 +198,7 @@ export function CollectionModule() {
                   <h4 className="text-xs font-medium uppercase text-slate-500">Payment history</h4>
                   <ul className="mt-2 space-y-2 text-sm">
                     {payments.map((p) => (
-                      <li key={p.id} className="flex justify-between text-slate-700">
+                      <li key={p.id} className="flex flex-col gap-0.5 text-slate-700 sm:flex-row sm:justify-between">
                         <span>
                           {p.utrNumber} · {new Date(p.paymentDate).toLocaleDateString()}
                         </span>

@@ -153,8 +153,8 @@ export default function EligibilityCheckPage() {
         description="Complete each step to submit your loan application."
       />
 
-      <main className="bg-white px-4 py-10 sm:px-6">
-        <div className="mx-auto max-w-3xl space-y-6">
+      <main className="bg-white px-4 py-8 sm:px-6 sm:py-10">
+        <div className="mx-auto max-w-3xl space-y-5 sm:space-y-6">
           {!canApplyForNewLoan && blockingLoan && (
             <ScrollReveal>
               <section className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">

@@ -182,7 +182,7 @@ export function AuthCard({
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-      className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-lg"
+      className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-lg sm:p-8"
     >
       <div className="mb-6 text-center">
         <p className="text-sm font-semibold text-slate-400">CreditSea</p>

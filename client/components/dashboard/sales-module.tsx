@@ -64,15 +64,15 @@ export function SalesModule() {
                 <button
                   type="button"
                   onClick={() => setExpandedId(isOpen ? null : lead.id)}
-                  className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left hover:bg-slate-50"
+                  className="flex w-full flex-col gap-3 px-4 py-4 text-left hover:bg-slate-50 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-5"
                 >
-                  <div>
-                    <p className="font-medium text-slate-900">
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-slate-900">
                       {lead.fullName || "No name yet"}
                     </p>
-                    <p className="text-xs text-slate-500">{lead.email}</p>
+                    <p className="truncate text-xs text-slate-500">{lead.email}</p>
                   </div>
-                  <div className="flex flex-wrap items-center justify-end gap-2">
+                  <div className="flex flex-wrap items-center gap-2 sm:justify-end">
                     <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-semibold uppercase text-slate-600">
                       {currentStageLabel(lead)}
                     </span>

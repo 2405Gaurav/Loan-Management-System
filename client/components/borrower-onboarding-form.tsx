@@ -70,7 +70,7 @@ export function BorrowerOnboardingForm({ initialProfile, onProfileUpdated }: Pro
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className="rounded-md border border-slate-200 bg-white p-6 sm:p-8"
+      className="rounded-md border border-slate-200 bg-white p-4 sm:p-6 md:p-8"
     >
       <h2 className="text-lg font-bold text-navy">Personal details</h2>
       <p className="mt-1 text-sm text-slate-500">
@@ -78,7 +78,8 @@ export function BorrowerOnboardingForm({ initialProfile, onProfileUpdated }: Pro
       </p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-        <div>
+        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="sm:col-span-2">
           <label htmlFor="fullName" className="mb-1.5 block text-sm font-medium text-slate-700">
             Full Name
           </label>
@@ -153,6 +154,7 @@ export function BorrowerOnboardingForm({ initialProfile, onProfileUpdated }: Pro
             <option value="SELF_EMPLOYED">SELF_EMPLOYED</option>
             <option value="UNEMPLOYED">UNEMPLOYED</option>
           </select>
+        </div>
         </div>
 
         <AnimatedAuthAlert message={error} />

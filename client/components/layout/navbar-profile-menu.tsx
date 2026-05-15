@@ -33,7 +33,12 @@ function displayName(user: AuthUser): string {
   return local.charAt(0).toUpperCase() + local.slice(1);
 }
 
-export function NavbarProfileMenu() {
+type Props = {
+  /** Icon-only trigger for mobile navbar */
+  compact?: boolean;
+};
+
+export function NavbarProfileMenu({ compact = false }: Props) {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const clearSession = useAuthStore((s) => s.clearSession);
@@ -81,16 +86,24 @@ export function NavbarProfileMenu() {
         aria-expanded={open}
         aria-haspopup="true"
         aria-label="Open profile menu"
-        className="flex items-center gap-2 rounded-full border border-slate-200 bg-white py-1 pl-1 pr-3 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+        className={`flex items-center rounded-full border border-slate-200 bg-white shadow-sm transition hover:border-slate-300 hover:bg-slate-50 ${
+          compact ? "p-0.5" : "gap-2 py-1 pl-1 pr-3"
+        }`}
       >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-600 text-sm font-semibold text-white">
+        <span
+          className={`flex shrink-0 items-center justify-center rounded-full bg-brand-600 font-semibold text-white ${
+            compact ? "h-9 w-9 text-sm" : "h-9 w-9 text-sm"
+          }`}
+        >
           {initials}
         </span>
-        <span className="hidden max-w-[120px] truncate text-sm font-medium text-slate-700 sm:inline">
-          {name}
-        </span>
+        {!compact && (
+          <span className="hidden max-w-[120px] truncate text-sm font-medium text-slate-700 md:inline">
+            {name}
+          </span>
+        )}
         <svg
-          className={`hidden h-4 w-4 text-slate-500 transition-transform sm:block ${
+          className={`h-4 w-4 text-slate-500 transition-transform ${compact ? "" : "hidden md:block"} ${
             open ? "rotate-180" : ""
           }`}
           fill="none"
@@ -110,7 +123,7 @@ export function NavbarProfileMenu() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.98 }}
             transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute right-0 z-50 mt-2 w-72 origin-top-right overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
+            className="absolute right-0 z-50 mt-2 w-[min(18rem,calc(100vw-2rem))] origin-top-right overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
             role="menu"
           >
             <div className="border-b border-slate-100 bg-slate-50/80 px-4 py-4">

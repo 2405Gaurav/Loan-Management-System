@@ -75,9 +75,9 @@ export function DisbursementModule() {
           {loans.map((loan) => (
             <li
               key={loan.id}
-              className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5"
+              className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5"
             >
-              <div>
+              <div className="min-w-0">
                 <p className="font-medium text-slate-900">
                   {loan.borrower.fullName || loan.borrower.email}
                 </p>
@@ -95,7 +95,7 @@ export function DisbursementModule() {
                 type="button"
                 disabled={actionLoading === loan.id}
                 onClick={() => handleDisburse(loan.id)}
-                className="rounded-full bg-brand-600 px-5 py-2 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+                className="w-full shrink-0 rounded-full bg-brand-600 px-5 py-2.5 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50 sm:w-auto"
               >
                 Mark disbursed
               </button>

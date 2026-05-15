@@ -63,7 +63,7 @@ export function SalarySlipUpload({ onUploaded }: Props) {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="rounded-md border border-slate-200 bg-white p-6 sm:p-8"
+      className="rounded-md border border-slate-200 bg-white p-4 sm:p-6 md:p-8"
     >
       <h2 className="text-lg font-bold text-[#0a1930]">Upload salary slip</h2>
       <p className="mt-1 text-sm text-slate-500">
@@ -83,7 +83,7 @@ export function SalarySlipUpload({ onUploaded }: Props) {
             type="file"
             accept=".pdf,.jpg,.jpeg,.png"
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm file:mr-4 file:rounded-md file:border-0 file:bg-[#00baf2] file:px-3 file:py-1.5 file:text-white"
+            className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm file:mr-4 file:rounded-md file:border-0 file:bg-brand-600 file:px-3 file:py-1.5 file:text-white"
           />
         </div>
 
@@ -92,7 +92,7 @@ export function SalarySlipUpload({ onUploaded }: Props) {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-full bg-[#00baf2] px-4 py-3 text-sm font-semibold text-white hover:bg-[#0099d6] disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded-full bg-brand-600 px-4 py-3 text-sm font-semibold text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? "Uploading..." : "Upload salary slip"}
         </button>

@@ -133,38 +133,38 @@ export function Hero() {
   ];
 
   if (!ready) {
-    return <section className="min-h-[680px] bg-white" aria-hidden />;
+    return <section className="min-h-[480px] bg-white lg:min-h-[680px]" aria-hidden />;
   }
 
   return (
     <section className="relative w-full overflow-hidden bg-white font-sans">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 xl:px-12">
         <motion.div
-          className="grid min-h-[680px] grid-cols-1 items-start gap-8 lg:grid-cols-2 lg:gap-0"
+          className="grid min-h-0 grid-cols-1 items-start gap-6 lg:min-h-[680px] lg:grid-cols-2 lg:gap-0"
           variants={container}
           initial="hidden"
           animate="visible"
         >
-          <div className="flex flex-col items-start py-10 lg:py-14">
+          <div className="flex flex-col items-start py-8 sm:py-10 lg:py-14">
             <motion.div variants={fadeUp}>
-              <h1 className="mb-6 text-[2.75rem] font-extrabold leading-[1.1] tracking-tight text-slate-900 sm:text-5xl lg:text-[3.2rem]">
+              <h1 className="mb-5 text-3xl font-extrabold leading-[1.1] tracking-tight text-slate-900 sm:mb-6 sm:text-4xl lg:text-[3.2rem]">
                 Loan Management
                 <br />
                 <span className="text-brand-600">System</span>
               </h1>
             </motion.div>
 
-            <motion.div variants={fadeUp} className="mb-8 flex flex-wrap gap-3">
-              <ButtonLink href={ROUTES.signup} variant="blue" className="!rounded-full">
+            <motion.div variants={fadeUp} className="mb-6 flex w-full flex-col gap-3 sm:mb-8 sm:flex-row sm:flex-wrap">
+              <ButtonLink href={ROUTES.signup} variant="blue" className="w-full !rounded-full sm:w-auto">
                 Get started
               </ButtonLink>
-              <ButtonLink href={ROUTES.login} variant="outline" className="!rounded-full">
+              <ButtonLink href={ROUTES.login} variant="outline" className="w-full !rounded-full sm:w-auto">
                 Sign in
               </ButtonLink>
             </motion.div>
 
-            <motion.div variants={fadeUp} className="w-full max-w-[480px]">
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+            <motion.div variants={fadeUp} className="w-full max-w-full sm:max-w-[480px]">
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xl sm:p-6">
                 <div className="mb-5 flex items-center gap-2 border-b border-slate-100 pb-4">
                   <div className="h-2 w-2 rounded-full bg-brand-600" />
                   <span className="text-xs font-bold uppercase tracking-widest text-slate-500">
@@ -227,16 +227,16 @@ export function Hero() {
 
           <motion.div
             variants={fadeInRight}
-            className="relative flex h-[420px] w-full items-start justify-center lg:h-[680px] lg:justify-end"
+            className="relative hidden h-[420px] w-full items-start justify-center lg:flex lg:h-[680px] lg:justify-end"
           >
-            <div className="relative mt-8 h-full w-full lg:mt-16">
+            <div className="relative mt-16 h-full w-full">
               <Image
                 src="/hero1.png"
                 alt="Personal loan illustration"
                 fill
                 priority
-                className="object-contain object-top lg:object-right-top"
-                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-contain object-right-top"
+                sizes="50vw"
               />
             </div>
           </motion.div>
