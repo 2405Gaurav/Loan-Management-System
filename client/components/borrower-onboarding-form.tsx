@@ -16,6 +16,9 @@ type Props = {
   onProfileUpdated: (profile: BorrowerProfile, breResult: BreResponse) => void;
 };
 
+const inputClass =
+  "w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100";
+
 export function BorrowerOnboardingForm({ initialProfile, onProfileUpdated }: Props) {
   const [fullName, setFullName] = useState(initialProfile?.fullName ?? "");
   const [panNumber, setPanNumber] = useState(initialProfile?.panNumber ?? "");
@@ -63,13 +66,13 @@ export function BorrowerOnboardingForm({ initialProfile, onProfileUpdated }: Pro
   }
 
   return (
-    <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="text-lg font-semibold text-slate-900">Personal details</h2>
+    <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm sm:p-8">
+      <h2 className="text-lg font-bold text-navy">Personal details</h2>
       <p className="mt-1 text-sm text-slate-500">
-        Complete your profile to run eligibility checks (BRE).
+        Quick details to unlock your credit journey.
       </p>
 
-      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+      <form onSubmit={handleSubmit} className="mt-8 space-y-5">
         <div>
           <label htmlFor="fullName" className="mb-1.5 block text-sm font-medium text-slate-700">
             Full Name
@@ -80,7 +83,7 @@ export function BorrowerOnboardingForm({ initialProfile, onProfileUpdated }: Pro
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             required
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+            className={inputClass}
           />
         </div>
 
@@ -96,7 +99,7 @@ export function BorrowerOnboardingForm({ initialProfile, onProfileUpdated }: Pro
             placeholder="ABCDE1234F"
             required
             maxLength={10}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm uppercase outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+            className={`${inputClass} uppercase`}
           />
         </div>
 
@@ -110,7 +113,7 @@ export function BorrowerOnboardingForm({ initialProfile, onProfileUpdated }: Pro
             value={dateOfBirth}
             onChange={(e) => setDateOfBirth(e.target.value)}
             required
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+            className={inputClass}
           />
         </div>
 
@@ -125,7 +128,7 @@ export function BorrowerOnboardingForm({ initialProfile, onProfileUpdated }: Pro
             value={monthlySalary}
             onChange={(e) => setMonthlySalary(e.target.value)}
             required
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+            className={inputClass}
           />
         </div>
 
@@ -138,7 +141,7 @@ export function BorrowerOnboardingForm({ initialProfile, onProfileUpdated }: Pro
             value={employmentType}
             onChange={(e) => setEmploymentType(e.target.value as EmploymentType)}
             required
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+            className={inputClass}
           >
             <option value="">Select employment type</option>
             <option value="SALARIED">SALARIED</option>
@@ -152,7 +155,7 @@ export function BorrowerOnboardingForm({ initialProfile, onProfileUpdated }: Pro
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded-full bg-brand-600 px-4 py-3 text-sm font-medium text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? "Submitting..." : "Submit & run eligibility check"}
         </button>

@@ -9,6 +9,9 @@ type FieldProps = {
   minLength?: number;
 };
 
+const inputClass =
+  "w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100";
+
 export function Field({
   label,
   id,
@@ -32,7 +35,7 @@ export function Field({
         placeholder={placeholder}
         required={required}
         minLength={minLength}
-        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+        className={inputClass}
       />
     </div>
   );
@@ -65,9 +68,10 @@ export function AuthCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+    <div className="w-full max-w-md rounded-2xl border border-slate-100 bg-white p-8 shadow-lg">
       <div className="mb-6 text-center">
-        <h1 className="text-2xl font-semibold text-slate-900">{title}</h1>
+        <p className="text-sm font-semibold text-slate-400">CreditSea</p>
+        <h1 className="mt-2 text-2xl font-bold text-navy">{title}</h1>
         <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
       </div>
       {children}
