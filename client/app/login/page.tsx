@@ -9,6 +9,7 @@ import {
   Field,
   PasswordField,
 } from "@/components/auth-form";
+import { PageEntrance } from "@/components/motion/page-entrance";
 import { getPostLoginPath, login } from "@/lib/api";
 import { getAuthErrorMessage } from "@/lib/auth-errors";
 import { getRedirectTarget, ROUTES } from "@/lib/navigation";
@@ -42,6 +43,7 @@ function LoginForm() {
   }
 
   return (
+    <PageEntrance className="flex flex-1">
     <main className="flex flex-1 items-center justify-center bg-section-muted px-4 py-16">
       <AuthCard title="Welcome back" subtitle="Log in to your CreditSea account">
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -85,6 +87,7 @@ function LoginForm() {
         </p>
       </AuthCard>
     </main>
+    </PageEntrance>
   );
 }
 

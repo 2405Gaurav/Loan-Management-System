@@ -158,7 +158,7 @@ export function LoanConfigForm({ onApplied }: Props) {
         disabled={loading}
         whileHover={{ scale: loading ? 1 : 1.01 }}
         whileTap={{ scale: loading ? 1 : 0.99 }}
-        className="mt-6 w-full rounded-full bg-[#00baf2] px-4 py-3.5 text-sm font-semibold text-white shadow-md hover:bg-[#0099d6] disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-6 w-full rounded-full bg-brand-600 px-4 py-3.5 text-sm font-semibold text-white shadow-md hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {loading ? "Submitting application..." : "Apply"}
       </motion.button>

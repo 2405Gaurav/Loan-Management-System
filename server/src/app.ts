@@ -8,7 +8,13 @@ import opsRoutes from "./routes/ops.routes.js";
 
 const app = express();
 
-app.use(cors());
+const clientOrigin = process.env.CLIENT_ORIGIN ?? "http://localhost:3000";
+app.use(
+  cors({
+    origin: clientOrigin,
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 app.get("/api/health", (_req, res) => {

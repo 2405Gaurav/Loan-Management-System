@@ -9,6 +9,7 @@ import {
   Field,
   PasswordField,
 } from "@/components/auth-form";
+import { PageEntrance } from "@/components/motion/page-entrance";
 import { getPostLoginPath, signup } from "@/lib/api";
 import {
   getAuthErrorMessage,
@@ -53,6 +54,7 @@ function SignupForm() {
   }
 
   return (
+    <PageEntrance className="flex flex-1">
     <main className="flex flex-1 items-center justify-center bg-section-muted px-4 py-16">
       <AuthCard title="Create account" subtitle="Join CreditSea in a few steps">
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -98,6 +100,7 @@ function SignupForm() {
         </p>
       </AuthCard>
     </main>
+    </PageEntrance>
   );
 }
 

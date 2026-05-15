@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { BrandLogo } from "@/components/layout/brand-logo";
 import { NavbarProfileMenu } from "@/components/layout/navbar-profile-menu";
 import { ButtonLink } from "@/components/ui/button";
 import { getCenterNavLinks } from "@/lib/nav-links";
@@ -32,7 +32,7 @@ export function Navbar() {
     <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white">
       <div className="mx-auto grid h-16 max-w-6xl grid-cols-[1fr_auto_1fr] items-center px-4 sm:px-8">
         <Link href={ROUTES.home} className="text-lg font-semibold text-slate-400">
-          <Image src="/logo1.svg" alt="CreditSea" width={180} height={200} />
+          <BrandLogo priority className="h-8 w-auto" />
         </Link>
 
         <nav className="flex items-center justify-center gap-8">

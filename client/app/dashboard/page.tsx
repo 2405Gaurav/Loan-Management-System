@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { BorrowerDashboard } from "@/components/dashboard/borrower-dashboard";
 import { CollectionModule } from "@/components/dashboard/collection-module";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { PageEntrance } from "@/components/motion/page-entrance";
 import { DisbursementModule } from "@/components/dashboard/disbursement-module";
 import { SalesModule } from "@/components/dashboard/sales-module";
 import { SanctionModule } from "@/components/dashboard/sanction-module";
@@ -102,9 +103,11 @@ export default function DashboardPage() {
 
   if (isBorrower) {
     return (
-      <main className="mx-auto max-w-6xl px-4 py-10">
-        <BorrowerDashboard />
-      </main>
+      <PageEntrance>
+        <main className="mx-auto max-w-6xl px-4 py-10">
+          <BorrowerDashboard />
+        </main>
+      </PageEntrance>
     );
   }
 
@@ -117,13 +120,15 @@ export default function DashboardPage() {
   }
 
   return (
-    <DashboardShell
-      role={role}
-      modules={modules}
-      activeModule={activeModule}
-      onModuleChange={setActiveModule}
-    >
-      <OpsModuleView module={activeModule} />
-    </DashboardShell>
+    <PageEntrance>
+      <DashboardShell
+        role={role}
+        modules={modules}
+        activeModule={activeModule}
+        onModuleChange={setActiveModule}
+      >
+        <OpsModuleView module={activeModule} />
+      </DashboardShell>
+    </PageEntrance>
   );
 }

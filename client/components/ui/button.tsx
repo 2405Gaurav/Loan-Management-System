@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { type ButtonHTMLAttributes, type ReactNode } from "react";
 
-type Variant = "primary" | "outline" | "pill" | "pill-outline" | "pill-dark";
+type Variant = "primary" | "blue" | "outline" | "pill" | "pill-outline" | "pill-dark";
 
 type BaseProps = {
   variant?: Variant;
@@ -20,6 +20,7 @@ type LinkButtonProps = BaseProps & {
 
 const variantStyles: Record<Variant, string> = {
   primary: "bg-brand-600 text-white hover:bg-brand-700 border border-transparent",
+  blue: "bg-blue-600 text-white hover:bg-blue-700 border border-transparent",
   outline: "bg-white text-brand-600 border border-brand-600 hover:bg-brand-50",
   pill: "rounded-full bg-white text-slate-900 shadow-md hover:bg-slate-50 border border-slate-200",
   "pill-outline":

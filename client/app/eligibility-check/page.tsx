@@ -10,6 +10,7 @@ import { LoanSummaryCard } from "@/components/borrower/loan-summary-card";
 import { SalarySlipUpload } from "@/components/borrower/salary-slip-upload";
 import { PageBanner } from "@/components/layout/page-banner";
 import { AnimatedPanel } from "@/components/motion/animated-panel";
+import { PageEntrance } from "@/components/motion/page-entrance";
 import { ScrollReveal } from "@/components/motion/scroll-reveal";
 import {
   type BreResponse,
@@ -145,7 +146,7 @@ export default function EligibilityCheckPage() {
   const salaryUploaded = Boolean(profile?.salarySlipUploaded || uploadedDoc);
 
   return (
-    <>
+    <PageEntrance>
       <PageBanner
         label="Borrower Application"
         title={`Welcome${displayName ? `, ${displayName}` : ""}`}
@@ -220,6 +221,6 @@ export default function EligibilityCheckPage() {
           )}
         </div>
       </main>
-    </>
+    </PageEntrance>
   );
 }
