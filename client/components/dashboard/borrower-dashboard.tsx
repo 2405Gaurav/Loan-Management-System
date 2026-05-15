@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
+import { LiveSyncBadge } from "@/components/dashboard/live-sync-badge";
 import { BorrowerLoanOverview } from "@/components/borrower/borrower-loan-overview";
+import { useLiveRefresh } from "@/hooks/use-live-refresh";
 import { ButtonLink } from "@/components/ui/button";
 import {
   getBorrowerProfile,
@@ -18,32 +20,41 @@ export function BorrowerDashboard() {
   const updateUser = useAuthStore((s) => s.updateUser);
 
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [profile, setProfile] = useState<BorrowerProfile | null>(null);
   const [activeLoan, setActiveLoan] = useState<LoanApplication | null>(null);
   const [error, setError] = useState("");
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError("");
+  const load = useCallback(async (opts?: { silent?: boolean }) => {
+    if (!opts?.silent) setLoading(true);
+    else setSyncing(true);
+    if (!opts?.silent) setError("");
     try {
       const data = await getBorrowerProfile();
       setProfile(data.user);
       setActiveLoan(data.activeLoan);
       updateUser(data.user);
+      setLastUpdated(new Date());
     } catch (err: unknown) {
-      const message =
-        axios.isAxiosError(err) && err.response?.data?.message
-          ? String(err.response.data.message)
-          : "Failed to load your loan status";
-      setError(message);
+      if (!opts?.silent) {
+        const message =
+          axios.isAxiosError(err) && err.response?.data?.message
+            ? String(err.response.data.message)
+            : "Failed to load your loan status";
+        setError(message);
+      }
     } finally {
-      setLoading(false);
+      if (!opts?.silent) setLoading(false);
+      else setSyncing(false);
     }
   }, [updateUser]);
 
   useEffect(() => {
-    load();
+    void load();
   }, [load]);
+
+  useLiveRefresh(() => load({ silent: true }));
 
   const displayName = profile?.fullName || user?.fullName || user?.email;
 
@@ -57,12 +68,18 @@ export function BorrowerDashboard() {
 
   return (
     <section>
-      <h2 className="text-lg font-semibold text-slate-900">
-        Welcome{displayName ? `, ${displayName}` : ""}
-      </h2>
-      <p className="mt-1 text-sm text-slate-600">
-        Track your loan application status here. To apply or update details, use Eligibility Check.
-      </p>
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">
+            Welcome{displayName ? `, ${displayName}` : ""}
+          </h2>
+          <p className="mt-1 text-sm text-slate-600">
+            Track your loan application status here. To apply or update details, use Eligibility
+            Check.
+          </p>
+        </div>
+        <LiveSyncBadge lastUpdated={lastUpdated} syncing={syncing} />
+      </div>
 
       {!activeLoan ? (
         <div className="mt-8 rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">

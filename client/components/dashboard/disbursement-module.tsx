@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
+import { LiveSyncBadge } from "@/components/dashboard/live-sync-badge";
+import { useLiveRefresh } from "@/hooks/use-live-refresh";
 import { disburseLoan, getDisbursementQueue, type OpsLoan } from "@/lib/api";
 
 function formatCurrency(n: number) {
@@ -15,35 +17,44 @@ function formatCurrency(n: number) {
 export function DisbursementModule() {
   const [loans, setLoans] = useState<OpsLoan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [error, setError] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError("");
+  const load = useCallback(async (opts?: { silent?: boolean }) => {
+    if (!opts?.silent) setLoading(true);
+    else setSyncing(true);
+    if (!opts?.silent) setError("");
     try {
       const data = await getDisbursementQueue();
       setLoans(data.loans);
+      setLastUpdated(new Date());
     } catch (err: unknown) {
-      const message =
-        axios.isAxiosError(err) && err.response?.data?.message
-          ? String(err.response.data.message)
-          : "Failed to load disbursement queue";
-      setError(message);
+      if (!opts?.silent) {
+        const message =
+          axios.isAxiosError(err) && err.response?.data?.message
+            ? String(err.response.data.message)
+            : "Failed to load disbursement queue";
+        setError(message);
+      }
     } finally {
-      setLoading(false);
+      if (!opts?.silent) setLoading(false);
+      else setSyncing(false);
     }
   }, []);
 
   useEffect(() => {
-    load();
+    void load();
   }, [load]);
+
+  useLiveRefresh(() => load({ silent: true }));
 
   async function handleDisburse(loanId: string) {
     setActionLoading(loanId);
     try {
       await disburseLoan(loanId);
-      await load();
+      await load({ silent: true });
     } catch (err: unknown) {
       const message =
         axios.isAxiosError(err) && err.response?.data?.message
@@ -59,10 +70,15 @@ export function DisbursementModule() {
 
   return (
     <section>
-      <h2 className="text-lg font-semibold text-slate-900">Disbursement — Release funds</h2>
-      <p className="mt-1 text-sm text-slate-600">
-        Mark sanctioned loans as disbursed (status becomes DISBURSED).
-      </p>
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">Disbursement — Release funds</h2>
+          <p className="mt-1 text-sm text-slate-600">
+            Mark sanctioned loans as disbursed (status becomes DISBURSED).
+          </p>
+        </div>
+        <LiveSyncBadge lastUpdated={lastUpdated} syncing={syncing} />
+      </div>
 
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 

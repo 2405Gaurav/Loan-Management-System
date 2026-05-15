@@ -129,7 +129,87 @@ creditsea-assignment/
 
 9. **Env & security** — `MONGO_URI`, `JWT_SECRET`, `CLIENT_ORIGIN` only on server; client uses `NEXT_PUBLIC_API_URL` (no secrets). `.env` files gitignored. CORS restricted to `CLIENT_ORIGIN`.
 
-10. **UI** — `PageEntrance` (Framer Motion): subtle fade-up on first visit per route per session. Primary actions use brand blue (`brand-600` / `blue-600`).
+10. **UI** — Hero and `PageEntrance` use Framer Motion (staggered intro on each page load; route changes re-animate via `key={pathname}`). Primary actions use brand blue (`brand-600` / `blue-600`).
+
+11. **Live sync** — Ops modules, borrower dashboard, and eligibility page poll the API every **8 seconds** while the tab is visible, and refetch on window focus / tab visibility. A “Live sync on · Last updated …” badge shows the last successful fetch. Implemented in `client/hooks/use-live-refresh.ts`.
+
+---
+
+## Role-by-role flows
+
+### Borrower (signup → eligibility → dashboard)
+
+1. **Sign up / log in** at `/signup` or `/login`. JWT stored in Zustand; staff users are redirected to `/dashboard`, borrowers to eligibility or dashboard as appropriate.
+2. **Eligibility check** (`/eligibility-check`) — gated wizard:
+   - **Personal details** → server runs BRE (`bre.service.ts`): age 23–50, salary ≥ ₹25,000, valid PAN, not unemployed. Failures append to `user.breHistory[]` with `failureReasons`.
+   - **Salary slip** — PDF/JPG/PNG, max 5 MB, only after BRE passes.
+   - **Loan config** — amount ₹50K–₹5L, tenure 30–365 days; SI interest shown client-side, persisted on apply.
+3. **Apply** creates a loan in **APPLIED** status. Re-apply is blocked while any loan is APPLIED, SANCTIONED, or DISBURSED; allowed after **REJECTED** or **CLOSED**.
+4. **Borrower dashboard** (`/dashboard` as borrower) shows `BorrowerLoanOverview`: status, amounts, sanction/reject notes, repayment progress when disbursed.
+
+### Sales (`/dashboard` → Sales module)
+
+Tracks **pre-sanction leads**: registered borrowers who have not yet reached a terminal loan state in ops queues, or are still in onboarding.
+
+**Lead timeline** (built server-side in `sales-lead-timeline.ts`, rendered in `SalesLeadTimeline`):
+
+| Step | ID | Meaning |
+|------|-----|---------|
+| 1 | `registered` | Account created (always done) |
+| 2 | `bre` | Eligibility check — `current` if no attempts; `done` if passed; `failed` if attempts exist but not passed; expandable BRE attempt history |
+| 3 | `salary-slip` | `upcoming` until BRE passes; `current` when BRE passed but no slip; `done` when uploaded |
+| 4 | `loan-apply` | `upcoming` until BRE + slip; `current` when ready but no loan; `done` when applied (shows status); `failed` if latest loan is **REJECTED** |
+
+Sales users **view only** — no approve/disburse actions. List refreshes live so new registrations and BRE outcomes appear without reload.
+
+### Sanction (`/dashboard` → Sanction module)
+
+- Queue: loans in **APPLIED** status.
+- **Approve** → **SANCTIONED** (visible to Disbursement).
+- **Reject** → **REJECTED** with required reason (borrower may re-apply later; Sales timeline shows failed loan step).
+
+### Disbursement (`/dashboard` → Disbursement module)
+
+- Queue: loans in **SANCTIONED** status.
+- **Disburse** → **DISBURSED** (principal released; repayment tracking begins).
+
+### Collection (`/dashboard` → Collection module)
+
+- Queue: **DISBURSED** loans with outstanding balance.
+- Select a loan → record payment (UTR, amount, date). UTR is unique; amount capped to outstanding.
+- When `totalPaid >= totalRepayment`, loan auto-closes as **CLOSED**.
+- Payment history for the selected loan refreshes with the queue.
+
+### Admin (`/dashboard`)
+
+- Sees **all four ops modules** (Sales, Sanction, Disbursement, Collection) via tab navigation in `dashboard-shell.tsx`.
+- Same APIs as specialists; RBAC middleware allows Admin on every ops route.
+
+### Loan lifecycle (system-wide)
+
+```
+APPLIED → SANCTIONED → DISBURSED → CLOSED
+    ↘ REJECTED (terminal for that application; borrower may apply again later)
+```
+
+---
+
+## Live data sync (frontend)
+
+| Surface | Data refreshed | Mechanism |
+|---------|----------------|-----------|
+| Sales module | `GET /api/ops/sales/leads` | `useLiveRefresh` + silent reload |
+| Sanction module | Sanction queue | same |
+| Disbursement module | Disbursement queue | same |
+| Collection module | Collection queue + selected loan payments | same |
+| Borrower dashboard | `GET /api/borrower/profile` | same |
+| Eligibility check | Borrower profile / blocking loan flags | same (when logged in as borrower) |
+
+- **Interval:** 8 seconds (only when `document.visibilityState === "visible"`).
+- **Triggers:** window `focus`, `visibilitychange` to visible.
+- **UX:** Initial load shows a loading state; background polls use `syncing` and do not clear the UI. `LiveSyncBadge` shows last successful update time.
+
+Optional: set poll interval via `useLiveRefresh(fn, { intervalMs: N })` per call site (default 8000).
 
 ---
 

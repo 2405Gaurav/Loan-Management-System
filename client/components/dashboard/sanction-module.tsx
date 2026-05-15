@@ -2,6 +2,8 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import axios from "axios";
+import { LiveSyncBadge } from "@/components/dashboard/live-sync-badge";
+import { useLiveRefresh } from "@/hooks/use-live-refresh";
 import {
   approveLoan,
   getSanctionQueue,
@@ -20,37 +22,46 @@ function formatCurrency(n: number) {
 export function SanctionModule() {
   const [loans, setLoans] = useState<OpsLoan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [error, setError] = useState("");
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError("");
+  const load = useCallback(async (opts?: { silent?: boolean }) => {
+    if (!opts?.silent) setLoading(true);
+    else setSyncing(true);
+    if (!opts?.silent) setError("");
     try {
       const data = await getSanctionQueue();
       setLoans(data.loans);
+      setLastUpdated(new Date());
     } catch (err: unknown) {
-      const message =
-        axios.isAxiosError(err) && err.response?.data?.message
-          ? String(err.response.data.message)
-          : "Failed to load sanction queue";
-      setError(message);
+      if (!opts?.silent) {
+        const message =
+          axios.isAxiosError(err) && err.response?.data?.message
+            ? String(err.response.data.message)
+            : "Failed to load sanction queue";
+        setError(message);
+      }
     } finally {
-      setLoading(false);
+      if (!opts?.silent) setLoading(false);
+      else setSyncing(false);
     }
   }, []);
 
   useEffect(() => {
-    load();
+    void load();
   }, [load]);
+
+  useLiveRefresh(() => load({ silent: true }));
 
   async function handleApprove(loanId: string) {
     setActionLoading(loanId);
     try {
       await approveLoan(loanId);
-      await load();
+      await load({ silent: true });
     } catch (err: unknown) {
       const message =
         axios.isAxiosError(err) && err.response?.data?.message
@@ -73,7 +84,7 @@ export function SanctionModule() {
       await rejectLoan(loanId, rejectReason.trim());
       setRejectingId(null);
       setRejectReason("");
-      await load();
+      await load({ silent: true });
     } catch (err: unknown) {
       const message =
         axios.isAxiosError(err) && err.response?.data?.message
@@ -89,10 +100,15 @@ export function SanctionModule() {
 
   return (
     <section>
-      <h2 className="text-lg font-semibold text-slate-900">Sanction — Review applications</h2>
-      <p className="mt-1 text-sm text-slate-600">
-        Approve moves loan to SANCTIONED; reject requires a reason and sets REJECTED.
-      </p>
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">Sanction — Review applications</h2>
+          <p className="mt-1 text-sm text-slate-600">
+            Approve moves loan to SANCTIONED; reject requires a reason and sets REJECTED.
+          </p>
+        </div>
+        <LiveSyncBadge lastUpdated={lastUpdated} syncing={syncing} />
+      </div>
 
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 

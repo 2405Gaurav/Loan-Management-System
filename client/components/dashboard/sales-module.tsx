@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
+import { LiveSyncBadge } from "@/components/dashboard/live-sync-badge";
 import { SalesLeadTimeline } from "@/components/dashboard/sales-lead-timeline";
+import { useLiveRefresh } from "@/hooks/use-live-refresh";
 import { getSalesLeads, type SalesLead } from "@/lib/api";
 
 function currentStageLabel(lead: SalesLead): string {
@@ -13,40 +15,54 @@ function currentStageLabel(lead: SalesLead): string {
 export function SalesModule() {
   const [leads, setLeads] = useState<SalesLead[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [error, setError] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError("");
+  const load = useCallback(async (opts?: { silent?: boolean }) => {
+    if (!opts?.silent) setLoading(true);
+    else setSyncing(true);
+    if (!opts?.silent) setError("");
     try {
       const data = await getSalesLeads();
       setLeads(data.leads);
+      setLastUpdated(new Date());
     } catch (err: unknown) {
-      const message =
-        axios.isAxiosError(err) && err.response?.data?.message
-          ? String(err.response.data.message)
-          : "Failed to load leads";
-      setError(message);
+      if (!opts?.silent) {
+        const message =
+          axios.isAxiosError(err) && err.response?.data?.message
+            ? String(err.response.data.message)
+            : "Failed to load leads";
+        setError(message);
+      }
     } finally {
-      setLoading(false);
+      if (!opts?.silent) setLoading(false);
+      else setSyncing(false);
     }
   }, []);
 
   useEffect(() => {
-    load();
+    void load();
   }, [load]);
+
+  useLiveRefresh(() => load({ silent: true }));
 
   if (loading) return <p className="text-sm text-slate-500">Loading leads...</p>;
   if (error) return <p className="text-sm text-red-600">{error}</p>;
 
   return (
     <section>
-      <h2 className="text-lg font-semibold text-slate-900">Sales — Lead tracking</h2>
-      <p className="mt-1 text-sm text-slate-600">
-        Pre-application borrowers: registration → BRE → salary slip → loan apply. Expand a lead
-        for the full timeline and BRE attempt history.
-      </p>
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">Sales — Lead tracking</h2>
+          <p className="mt-1 text-sm text-slate-600">
+            Pre-application borrowers: registration → BRE → salary slip → loan apply. Expand a
+            lead for the full timeline and BRE attempt history.
+          </p>
+        </div>
+        <LiveSyncBadge lastUpdated={lastUpdated} syncing={syncing} />
+      </div>
 
       {leads.length === 0 ? (
         <p className="mt-6 rounded-lg border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">
@@ -85,7 +101,7 @@ export function SalesModule() {
                 </button>
 
                 {isOpen && (
-                  <div className="border-t border-slate-100 px-5 pb-5">
+                  <div className="border-t border-slate-100 px-4 pb-5 sm:px-5">
                     <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-medium uppercase tracking-wide">
                       <span
                         className={`rounded px-2 py-0.5 ${

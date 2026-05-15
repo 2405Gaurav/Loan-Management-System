@@ -2,6 +2,8 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import axios from "axios";
+import { LiveSyncBadge } from "@/components/dashboard/live-sync-badge";
+import { useLiveRefresh } from "@/hooks/use-live-refresh";
 import {
   getCollectionQueue,
   getLoanPayments,
@@ -21,6 +23,8 @@ function formatCurrency(n: number) {
 export function CollectionModule() {
   const [loans, setLoans] = useState<OpsLoan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [error, setError] = useState("");
   const [selectedLoanId, setSelectedLoanId] = useState<string | null>(null);
   const [payments, setPayments] = useState<LoanPayment[]>([]);
@@ -31,20 +35,25 @@ export function CollectionModule() {
   );
   const [submitting, setSubmitting] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError("");
+  const load = useCallback(async (opts?: { silent?: boolean }) => {
+    if (!opts?.silent) setLoading(true);
+    else setSyncing(true);
+    if (!opts?.silent) setError("");
     try {
       const data = await getCollectionQueue();
       setLoans(data.loans);
+      setLastUpdated(new Date());
     } catch (err: unknown) {
-      const message =
-        axios.isAxiosError(err) && err.response?.data?.message
-          ? String(err.response.data.message)
-          : "Failed to load collection queue";
-      setError(message);
+      if (!opts?.silent) {
+        const message =
+          axios.isAxiosError(err) && err.response?.data?.message
+            ? String(err.response.data.message)
+            : "Failed to load collection queue";
+        setError(message);
+      }
     } finally {
-      setLoading(false);
+      if (!opts?.silent) setLoading(false);
+      else setSyncing(false);
     }
   }, []);
 
@@ -52,20 +61,26 @@ export function CollectionModule() {
     try {
       const data = await getLoanPayments(loanId);
       setPayments(data.payments);
+      setLastUpdated(new Date());
     } catch {
       setPayments([]);
     }
   }, []);
 
   useEffect(() => {
-    load();
+    void load();
   }, [load]);
 
   useEffect(() => {
     if (selectedLoanId) {
-      loadPayments(selectedLoanId);
+      void loadPayments(selectedLoanId);
     }
   }, [selectedLoanId, loadPayments]);
+
+  useLiveRefresh(() => {
+    void load({ silent: true });
+    if (selectedLoanId) void loadPayments(selectedLoanId);
+  });
 
   const selectedLoan = loans.find((l) => l.id === selectedLoanId);
 
@@ -84,7 +99,7 @@ export function CollectionModule() {
       });
       setUtrNumber("");
       setAmount("");
-      await load();
+      await load({ silent: true });
       await loadPayments(selectedLoanId);
     } catch (err: unknown) {
       const message =
@@ -101,10 +116,15 @@ export function CollectionModule() {
 
   return (
     <section>
-      <h2 className="text-lg font-semibold text-slate-900">Collection — Record payments</h2>
-      <p className="mt-1 text-sm text-slate-600">
-        UTR must be unique. Loan auto-closes when outstanding reaches zero.
-      </p>
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">Collection — Record payments</h2>
+          <p className="mt-1 text-sm text-slate-600">
+            UTR must be unique. Loan auto-closes when outstanding reaches zero.
+          </p>
+        </div>
+        <LiveSyncBadge lastUpdated={lastUpdated} syncing={syncing} />
+      </div>
 
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 

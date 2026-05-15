@@ -8,7 +8,9 @@ import { BorrowerOnboardingForm } from "@/components/borrower-onboarding-form";
 import { LoanConfigForm } from "@/components/borrower/loan-config-form";
 import { LoanSummaryCard } from "@/components/borrower/loan-summary-card";
 import { SalarySlipUpload } from "@/components/borrower/salary-slip-upload";
+import { LiveSyncBadge } from "@/components/dashboard/live-sync-badge";
 import { PageBanner } from "@/components/layout/page-banner";
+import { useLiveRefresh } from "@/hooks/use-live-refresh";
 import { AnimatedPanel } from "@/components/motion/animated-panel";
 import { PageEntrance } from "@/components/motion/page-entrance";
 import { ScrollReveal } from "@/components/motion/scroll-reveal";
@@ -38,6 +40,8 @@ export default function EligibilityCheckPage() {
   const fetchSession = useAuthStore((s) => s.fetchSession);
 
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [profile, setProfile] = useState<BorrowerProfile | null>(null);
   const [blockingLoan, setBlockingLoan] = useState<LoanApplication | null>(null);
   const [canApplyForNewLoan, setCanApplyForNewLoan] = useState(true);
@@ -61,10 +65,12 @@ export default function EligibilityCheckPage() {
     [updateUser]
   );
 
-  const loadProfile = useCallback(async () => {
+  const loadProfile = useCallback(async (opts?: { silent?: boolean }) => {
+    if (opts?.silent) setSyncing(true);
     try {
       const data = await getBorrowerProfile();
       applyProfileData(data);
+      setLastUpdated(new Date());
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) {
@@ -77,9 +83,16 @@ export default function EligibilityCheckPage() {
         }
       }
     } finally {
-      setLoading(false);
+      if (!opts?.silent) setLoading(false);
+      else setSyncing(false);
     }
   }, [router, applyProfileData]);
+
+  useLiveRefresh(() => {
+    if (selectIsBorrower(useAuthStore.getState()) && !selectIsStaff(useAuthStore.getState())) {
+      void loadProfile({ silent: true });
+    }
+  });
 
   useEffect(() => {
     if (!hasHydrated) return;
@@ -152,6 +165,9 @@ export default function EligibilityCheckPage() {
         title={`Welcome${displayName ? `, ${displayName}` : ""}`}
         description="Complete each step to submit your loan application."
       />
+      <div className="mx-auto flex max-w-3xl justify-end px-4 pt-2 sm:px-6">
+        <LiveSyncBadge lastUpdated={lastUpdated} syncing={syncing} />
+      </div>
 
       <main className="bg-white px-4 py-8 sm:px-6 sm:py-10">
         <div className="mx-auto max-w-3xl space-y-5 sm:space-y-6">
