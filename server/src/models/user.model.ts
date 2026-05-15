@@ -7,7 +7,7 @@ const BCRYPT_SALT_ROUNDS = 12;
 // Each BRE attempt (pass or fail) with rejection reasons for sales visibility
 export interface IBreHistoryEntry {
   passed: boolean;
-  errors: string[];
+  failureReasons: string[];
   attemptedAt: Date;
 }
 
@@ -77,7 +77,7 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
       type: [
         {
           passed: { type: Boolean, required: true },
-          errors: [{ type: String }],
+          failureReasons: [{ type: String }],
           attemptedAt: { type: Date, default: () => new Date() },
         },
       ],

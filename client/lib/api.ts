@@ -217,7 +217,7 @@ export interface DashboardMeta {
 
 export interface BreHistoryEntry {
   passed: boolean;
-  errors: string[];
+  failureReasons: string[];
   attemptedAt: string;
 }
 

@@ -78,9 +78,9 @@ export function SalesLeadTimeline({ steps }: Props) {
                             {formatDate(attempt.attemptedAt)}
                           </span>
                         </p>
-                        {!attempt.passed && attempt.errors.length > 0 && (
+                        {!attempt.passed && attempt.failureReasons.length > 0 && (
                           <ul className="mt-1 list-inside list-disc text-red-800">
-                            {attempt.errors.map((err) => (
+                            {attempt.failureReasons.map((err) => (
                               <li key={err}>{err}</li>
                             ))}
                           </ul>

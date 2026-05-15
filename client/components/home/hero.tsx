@@ -111,10 +111,10 @@ export function Hero() {
 
             {/* Main Headline */}
             <h1 className="mb-6 text-[2.75rem] font-extrabold leading-[1.1] tracking-tight text-[#0a1930] sm:text-5xl lg:text-[3.2rem]">
-              Personal Loan
+              Loan Management
               <br />
-              <span>- Instant in </span>
-              <span className="text-[#00baf2]">2 Minutes</span>
+              <span>System </span>
+
             </h1>
 
             {/* ── Calculator Card ── */}

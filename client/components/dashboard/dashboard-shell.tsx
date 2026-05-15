@@ -1,9 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/stores/auth-store";
-import { ROUTES } from "@/lib/navigation";
 import type { DashboardModule } from "@/lib/api";
 import type { UserRole } from "@/lib/roles";
 
@@ -29,34 +25,12 @@ export function DashboardShell({
   onModuleChange,
   children,
 }: DashboardShellProps) {
-  const router = useRouter();
-  const clearSession = useAuthStore((s) => s.clearSession);
-
-  function handleLogout() {
-    clearSession();
-    router.push(ROUTES.login);
-  }
-
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-          <div>
-            <p className="text-sm font-semibold text-slate-900">Operations Dashboard</p>
-            <p className="text-xs text-slate-500">Role: {role}</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link href={ROUTES.home} className="text-sm text-brand-600 hover:underline">
-              Public site
-            </Link>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="rounded-full bg-slate-900 px-4 py-2 text-xs font-medium text-white hover:bg-slate-800"
-            >
-              Log out
-            </button>
-          </div>
+        <div className="mx-auto max-w-6xl px-4 py-4">
+          <p className="text-sm font-semibold text-slate-900">Operations Dashboard</p>
+          <p className="text-xs text-slate-500">Role: {role}</p>
         </div>
       </header>
 

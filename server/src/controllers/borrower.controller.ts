@@ -165,7 +165,7 @@ export async function submitProfile(req: Request, res: Response): Promise<void> 
     }
     user.breHistory.push({
       passed: breResult.passed,
-      errors: breResult.errors,
+      failureReasons: breResult.errors,
       attemptedAt: new Date(),
     });
 

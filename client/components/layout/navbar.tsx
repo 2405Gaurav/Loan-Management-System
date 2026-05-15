@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
-import { Button, ButtonLink } from "@/components/ui/button";
+import { usePathname } from "next/navigation";
+import { NavbarProfileMenu } from "@/components/layout/navbar-profile-menu";
+import { ButtonLink } from "@/components/ui/button";
 import { getCenterNavLinks } from "@/lib/nav-links";
 import { ROUTES } from "@/lib/navigation";
 import {
@@ -14,21 +15,12 @@ import {
 } from "@/stores/auth-store";
 
 export function Navbar() {
-  const router = useRouter();
   const pathname = usePathname();
 
   const hasHydrated = useAuthStore((s) => s.hasHydrated);
   const isAuthenticated = useAuthStore(selectIsAuthenticated);
-  const user = useAuthStore((s) => s.user);
   const role = useAuthStore(selectUserRole);
   const isStaff = useAuthStore(selectIsStaff);
-  const clearSession = useAuthStore((s) => s.clearSession);
-
-  function handleLogout() {
-    clearSession();
-    router.push(ROUTES.home);
-    router.refresh();
-  }
 
   const navLinks = getCenterNavLinks({
     loggedIn: hasHydrated && isAuthenticated,
@@ -61,14 +53,7 @@ export function Navbar() {
 
         <div className="flex items-center justify-end gap-3">
           {hasHydrated && isAuthenticated ? (
-            <>
-              <span className="hidden max-w-[160px] truncate text-sm text-slate-600 sm:inline">
-                {user?.email}
-              </span>
-              <Button variant="pill-dark" onClick={handleLogout} className="!px-5 !py-2">
-                Log out
-              </Button>
-            </>
+            <NavbarProfileMenu />
           ) : (
             <>
               <ButtonLink variant="outline" href={ROUTES.signup} className="!rounded-full !px-5 !py-2">

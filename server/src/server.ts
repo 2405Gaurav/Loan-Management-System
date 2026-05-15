@@ -20,7 +20,20 @@ async function startServer(): Promise<void> {
 
   ensureUploadDirectories();
 
-  await mongoose.connect(mongoUri);
+  try {
+    await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 10000 });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unknown connection error";
+    if (message.includes("whitelist") || message.includes("ServerSelection")) {
+      console.error(
+        "\nMongoDB Atlas connection failed.\n" +
+          "→ Open MongoDB Atlas → Network Access → Add IP Address → use your current IP or 0.0.0.0/0 (dev only).\n" +
+          "→ Or use local MongoDB: MONGO_URI=mongodb://127.0.0.1:27017/loan-management\n"
+      );
+    }
+    throw error;
+  }
   console.log("MongoDB connected");
 
   app.listen(PORT, () => {

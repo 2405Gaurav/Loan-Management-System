@@ -11,7 +11,7 @@ export interface SalesLeadTimelineStep {
   date: string | null;
   breAttempts?: Array<{
     passed: boolean;
-    errors: string[];
+    failureReasons: string[];
     attemptedAt: string;
   }>;
 }
@@ -27,7 +27,7 @@ export function buildSalesLeadTimeline(input: {
   const formatAttempts = (history: IBreHistoryEntry[]) =>
     history.map((h) => ({
       passed: h.passed,
-      errors: h.errors ?? [],
+      failureReasons: h.failureReasons ?? [],
       attemptedAt: h.attemptedAt.toISOString(),
     }));
 

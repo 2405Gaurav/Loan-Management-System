@@ -56,7 +56,7 @@ export async function getSalesLeads() {
       const latestLoan = latestLoanByBorrower.get(String(b._id));
       const breHistory = (b.breHistory ?? []).map((h) => ({
         passed: h.passed,
-        errors: h.errors ?? [],
+        failureReasons: h.failureReasons ?? (h as { errors?: string[] }).errors ?? [],
         attemptedAt: h.attemptedAt,
       }));
 
@@ -70,7 +70,7 @@ export async function getSalesLeads() {
         registeredAt: b.createdAt,
         breHistory: breHistory.map((h) => ({
           passed: h.passed,
-          errors: h.errors,
+          failureReasons: h.failureReasons,
           attemptedAt: h.attemptedAt.toISOString(),
         })),
         latestLoanStatus: latestLoan?.status ?? null,
