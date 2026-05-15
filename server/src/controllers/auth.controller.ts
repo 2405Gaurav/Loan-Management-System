@@ -2,7 +2,10 @@ import type { Request, Response } from "express";
 import { UserRole } from "../models/enums.js";
 import { User } from "../models/user.model.js";
 import { generateToken } from "../utils/jwt.js";
+import { getMongooseValidationMessage } from "../utils/mongoose-errors.js";
 import { isStaffRole } from "../middleware/staff.middleware.js";
+
+const MIN_PASSWORD_LENGTH = 6;
 
 function formatUser(user: {
   _id: unknown;
@@ -45,6 +48,13 @@ export async function signup(req: Request, res: Response): Promise<void> {
       return;
     }
 
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      res.status(400).json({
+        message: `Password must be at least ${MIN_PASSWORD_LENGTH} characters`,
+      });
+      return;
+    }
+
     const existingUser = await User.findOne({ email: email.toLowerCase().trim() });
     if (existingUser) {
       res.status(409).json({ message: "User already exists" });
@@ -65,6 +75,11 @@ export async function signup(req: Request, res: Response): Promise<void> {
       user: formatUser(user),
     });
   } catch (error) {
+    const validationMessage = getMongooseValidationMessage(error);
+    if (validationMessage) {
+      res.status(400).json({ message: validationMessage });
+      return;
+    }
     console.error("Signup error:", error);
     res.status(500).json({ message: "Internal server error" });
   }

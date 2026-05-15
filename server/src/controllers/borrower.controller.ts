@@ -1,12 +1,18 @@
 import type { Request, Response } from "express";
 import { EmploymentType } from "../models/enums.js";
 import { runBreChecks } from "../services/bre.service.js";
+import { getBorrowerLoanEligibility } from "../services/borrower-loan-eligibility.service.js";
 import {
   formatLoan,
   formatLoanWithPayments,
-  getActiveLoanForBorrower,
   getLatestLoanForBorrower,
 } from "../services/loan.service.js";
+import {
+  isMongoPanDuplicateError,
+  isPanRegisteredByAnotherUser,
+  normalizePan,
+  PAN_DUPLICATE_MESSAGE,
+} from "../utils/pan.js";
 
 function formatBorrowerProfile(user: {
   _id: unknown;
@@ -41,11 +47,24 @@ export async function getProfile(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const latestLoan = await getLatestLoanForBorrower(req.user._id);
+    const [latestLoan, eligibility] = await Promise.all([
+      getLatestLoanForBorrower(req.user._id),
+      getBorrowerLoanEligibility(req.user._id),
+    ]);
+
+    const formattedLatest = latestLoan
+      ? await formatLoanWithPayments(latestLoan)
+      : null;
+    const formattedBlocking = eligibility.blockingLoan
+      ? await formatLoanWithPayments(eligibility.blockingLoan)
+      : null;
 
     res.status(200).json({
       user: formatBorrowerProfile(req.user),
-      activeLoan: latestLoan ? await formatLoanWithPayments(latestLoan) : null,
+      activeLoan: formattedLatest,
+      blockingLoan: formattedBlocking,
+      canApplyForNewLoan: eligibility.canApplyForNewLoan,
+      applyBlockReason: eligibility.applyBlockReason,
     });
   } catch (error) {
     console.error("Get profile error:", error);
@@ -112,9 +131,15 @@ export async function submitProfile(req: Request, res: Response): Promise<void> 
     }
 
     const user = req.user;
+    const normalizedPan = normalizePan(panNumber);
+
+    if (await isPanRegisteredByAnotherUser(normalizedPan, user._id)) {
+      res.status(409).json({ message: PAN_DUPLICATE_MESSAGE });
+      return;
+    }
 
     user.fullName = fullName.trim();
-    user.panNumber = panNumber.toUpperCase().trim();
+    user.panNumber = normalizedPan;
     user.dateOfBirth = parsedDob;
     user.monthlySalary = parsedSalary;
     user.employmentType = employmentType as EmploymentType;
@@ -147,23 +172,33 @@ export async function submitProfile(req: Request, res: Response): Promise<void> 
     try {
       await user.save();
     } catch (saveError: unknown) {
-      const mongoError = saveError as { code?: number; keyPattern?: { panNumber?: unknown } };
-      if (mongoError.code === 11000 && mongoError.keyPattern?.panNumber !== undefined) {
-        res.status(409).json({
-          message: "This PAN is already registered with another account.",
-        });
+      if (isMongoPanDuplicateError(saveError)) {
+        res.status(409).json({ message: PAN_DUPLICATE_MESSAGE });
         return;
       }
       throw saveError;
     }
 
-    const activeLoan = await getActiveLoanForBorrower(user._id);
+    const [latestLoan, eligibility] = await Promise.all([
+      getLatestLoanForBorrower(user._id),
+      getBorrowerLoanEligibility(user._id),
+    ]);
+
+    const formattedLatest = latestLoan
+      ? await formatLoanWithPayments(latestLoan)
+      : null;
+    const formattedBlocking = eligibility.blockingLoan
+      ? await formatLoanWithPayments(eligibility.blockingLoan)
+      : null;
 
     res.status(200).json({
       passed: breResult.passed,
       errors: breResult.errors,
       user: formatBorrowerProfile(user),
-      activeLoan: activeLoan ? formatLoan(activeLoan) : null,
+      activeLoan: formattedLatest,
+      blockingLoan: formattedBlocking,
+      canApplyForNewLoan: eligibility.canApplyForNewLoan,
+      applyBlockReason: eligibility.applyBlockReason,
     });
   } catch (error) {
     console.error("Submit profile error:", error);

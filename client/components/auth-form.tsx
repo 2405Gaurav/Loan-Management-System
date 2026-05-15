@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
 
 type FieldProps = {
   label: string;
@@ -49,6 +50,82 @@ export function Field({
   );
 }
 
+type PasswordFieldProps = {
+  label: string;
+  id: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  required?: boolean;
+  minLength?: number;
+  autoComplete?: "new-password" | "current-password";
+};
+
+function EyeIcon({ open }: { open: boolean }) {
+  if (open) {
+    return (
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+        <line x1="1" y1="1" x2="23" y2="23" />
+      </svg>
+    );
+  }
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+export function PasswordField({
+  label,
+  id,
+  value,
+  onChange,
+  placeholder,
+  required,
+  minLength,
+  autoComplete = "current-password",
+}: PasswordFieldProps) {
+  const [visible, setVisible] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: 0.05 }}
+    >
+      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-slate-700">
+        {label}
+      </label>
+      <div className="relative">
+        <input
+          id={id}
+          type={visible ? "text" : "password"}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          required={required}
+          minLength={minLength}
+          autoComplete={autoComplete}
+          className={`${inputClass} pr-11`}
+        />
+        <motion.button
+          type="button"
+          whileTap={{ scale: 0.92 }}
+          onClick={() => setVisible((v) => !v)}
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+          aria-label={visible ? "Hide password" : "Show password"}
+        >
+          <EyeIcon open={visible} />
+        </motion.button>
+      </div>
+    </motion.div>
+  );
+}
+
 export function Alert({
   type,
   message,
@@ -62,14 +139,32 @@ export function Alert({
       : "border-emerald-200 bg-emerald-50 text-emerald-700";
 
   return (
-    <motion.p
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: "auto" }}
-      exit={{ opacity: 0, height: 0 }}
-      className={`rounded-lg border px-3 py-2 text-sm ${styles}`}
+    <motion.div
+      role="alert"
+      initial={{ opacity: 0, y: -10, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -8, scale: 0.98 }}
+      transition={{ type: "spring", stiffness: 400, damping: 28 }}
+      className={`rounded-lg border px-3 py-2.5 text-sm ${styles}`}
     >
       {message}
-    </motion.p>
+    </motion.div>
+  );
+}
+
+export function AnimatedAuthAlert({
+  message,
+  type = "error",
+}: {
+  message: string;
+  type?: "error" | "success";
+}) {
+  return (
+    <AnimatePresence mode="wait">
+      {message ? (
+        <Alert key={message} type={type} message={message} />
+      ) : null}
+    </AnimatePresence>
   );
 }
 

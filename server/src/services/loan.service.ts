@@ -12,21 +12,18 @@ import { Payment } from "../models/payment.model.js";
 import type { UserDocument } from "../models/user.model.js";
 import { DocumentType } from "../models/enums.js";
 import { Document, type DocumentRecord } from "../models/document.model.js";
-
-// Prevent duplicate open applications for same borrower
-const ACTIVE_LOAN_STATUSES = [
-  LoanStatus.APPLIED,
-  LoanStatus.SANCTIONED,
-  LoanStatus.DISBURSED,
-];
+import {
+  getBlockingLoanForBorrower,
+  getNewLoanBlockReason,
+} from "./borrower-loan-eligibility.service.js";
 
 export async function getActiveLoanForBorrower(borrowerId: Types.ObjectId) {
-  return Loan.findOne({
-    borrower: borrowerId,
-    status: { $in: ACTIVE_LOAN_STATUSES },
-  })
-    .sort({ appliedAt: -1 })
-    .populate("salarySlipDocument", "originalFileName mimeType uploadedAt");
+  const blocking = await getBlockingLoanForBorrower(borrowerId);
+  if (!blocking) return null;
+  return Loan.findById(blocking._id).populate(
+    "salarySlipDocument",
+    "originalFileName mimeType uploadedAt"
+  );
 }
 
 // Latest loan for borrower dashboard — includes closed/rejected for full history
@@ -87,9 +84,9 @@ export async function applyForLoan(
     );
   }
 
-  const existingActiveLoan = await getActiveLoanForBorrower(user._id);
-  if (existingActiveLoan) {
-    throw new Error("You already have an active loan application");
+  const blockingLoan = await getBlockingLoanForBorrower(user._id);
+  if (blockingLoan) {
+    throw new Error(getNewLoanBlockReason(blockingLoan.status));
   }
 
   const salarySlip = await Document.findOne({

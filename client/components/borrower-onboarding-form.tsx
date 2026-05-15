@@ -1,9 +1,9 @@
 "use client";
 
-import axios from "axios";
 import { motion } from "framer-motion";
 import { FormEvent, useState } from "react";
-import { Alert } from "@/components/auth-form";
+import { AnimatedAuthAlert } from "@/components/auth-form";
+import { getAuthErrorMessage } from "@/lib/auth-errors";
 import {
   type BreResponse,
   type BorrowerProfile,
@@ -57,11 +57,9 @@ export function BorrowerOnboardingForm({ initialProfile, onProfileUpdated }: Pro
       updateUser(result.user);
       onProfileUpdated(result.user, result);
     } catch (err: unknown) {
-      const message =
-        axios.isAxiosError(err) && err.response?.data?.message
-          ? String(err.response.data.message)
-          : "Failed to submit profile. Please try again.";
-      setError(message);
+      setError(
+        getAuthErrorMessage(err, "Failed to submit profile. Please try again.")
+      );
     } finally {
       setLoading(false);
     }
@@ -157,7 +155,7 @@ export function BorrowerOnboardingForm({ initialProfile, onProfileUpdated }: Pro
           </select>
         </div>
 
-        {error && <Alert type="error" message={error} />}
+        <AnimatedAuthAlert message={error} />
 
         <button
           type="submit"

@@ -1,11 +1,16 @@
 "use client";
 
-import axios from "axios";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useState } from "react";
-import { Alert, AuthCard, Field } from "@/components/auth-form";
+import {
+  AnimatedAuthAlert,
+  AuthCard,
+  Field,
+  PasswordField,
+} from "@/components/auth-form";
 import { getPostLoginPath, login } from "@/lib/api";
+import { getAuthErrorMessage } from "@/lib/auth-errors";
 import { getRedirectTarget, ROUTES } from "@/lib/navigation";
 import { useAuthStore } from "@/stores/auth-store";
 
@@ -30,11 +35,7 @@ function LoginForm() {
       setSession(data.token, data.user);
       router.push(getPostLoginPath(data.user, redirectTo));
     } catch (err: unknown) {
-      const message =
-        axios.isAxiosError(err) && err.response?.data?.message
-          ? String(err.response.data.message)
-          : "Login failed. Please try again.";
-      setError(message);
+      setError(getAuthErrorMessage(err, "Login failed. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -53,17 +54,16 @@ function LoginForm() {
             placeholder="you@example.com"
             required
           />
-          <Field
+          <PasswordField
             label="Password"
             id="password"
-            type="password"
             value={password}
             onChange={setPassword}
             placeholder="Enter your password"
             required
           />
 
-          {error && <Alert type="error" message={error} />}
+          <AnimatedAuthAlert message={error} />
 
           <button
             type="submit"

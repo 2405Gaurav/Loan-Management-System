@@ -107,6 +107,9 @@ export interface LoanApplication {
 export interface ProfileResponse {
   user: BorrowerProfile;
   activeLoan: LoanApplication | null;
+  blockingLoan: LoanApplication | null;
+  canApplyForNewLoan: boolean;
+  applyBlockReason: string | null;
 }
 
 export interface AuthResponse {
@@ -120,6 +123,9 @@ export interface BreResponse {
   errors: string[];
   user: BorrowerProfile;
   activeLoan: LoanApplication | null;
+  blockingLoan: LoanApplication | null;
+  canApplyForNewLoan: boolean;
+  applyBlockReason: string | null;
 }
 
 export interface SubmitProfilePayload {

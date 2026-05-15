@@ -47,7 +47,11 @@ export async function applyLoan(req: Request, res: Response): Promise<void> {
       message.includes("BRE") ||
       message.includes("Salary slip") ||
       message.includes("between") ||
-      message.includes("active loan")
+      message.includes("active loan") ||
+      message.includes("cannot apply") ||
+      message.includes("automatically closed") ||
+      message.includes("under review") ||
+      message.includes("awaiting disbursement")
     ) {
       res.status(400).json({ message });
       return;

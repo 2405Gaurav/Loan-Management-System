@@ -286,9 +286,10 @@ export async function recordPayment(
   loan.totalPaidAmount = newTotalPaid;
   loan.outstandingAmount = newOutstanding;
 
-  // Auto-close when total paid equals total repayment
-  if (newOutstanding <= 0) {
+  // Auto-close when fully repaid — no manual close by staff
+  if (newOutstanding <= 0 || newTotalPaid >= loan.totalRepaymentAmount) {
     loan.outstandingAmount = 0;
+    loan.totalPaidAmount = loan.totalRepaymentAmount;
     loan.status = LoanStatus.CLOSED;
     loan.closedAt = new Date();
   }

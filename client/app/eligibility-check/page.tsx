@@ -1,6 +1,7 @@
 "use client";
 
 import axios from "axios";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { BorrowerOnboardingForm } from "@/components/borrower-onboarding-form";
@@ -37,16 +38,32 @@ export default function EligibilityCheckPage() {
 
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<BorrowerProfile | null>(null);
-  const [activeLoan, setActiveLoan] = useState<LoanApplication | null>(null);
+  const [blockingLoan, setBlockingLoan] = useState<LoanApplication | null>(null);
+  const [canApplyForNewLoan, setCanApplyForNewLoan] = useState(true);
+  const [applyBlockReason, setApplyBlockReason] = useState<string | null>(null);
   const [breErrors, setBreErrors] = useState<string[]>([]);
   const [uploadedDoc, setUploadedDoc] = useState<SalarySlipDocument | null>(null);
+
+  const applyProfileData = useCallback(
+    (data: {
+      user: BorrowerProfile;
+      blockingLoan: LoanApplication | null;
+      canApplyForNewLoan: boolean;
+      applyBlockReason: string | null;
+    }) => {
+      setProfile(data.user);
+      setBlockingLoan(data.blockingLoan);
+      setCanApplyForNewLoan(data.canApplyForNewLoan);
+      setApplyBlockReason(data.applyBlockReason);
+      updateUser(data.user);
+    },
+    [updateUser]
+  );
 
   const loadProfile = useCallback(async () => {
     try {
       const data = await getBorrowerProfile();
-      setProfile(data.user);
-      setActiveLoan(data.activeLoan);
-      updateUser(data.user);
+      applyProfileData(data);
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) {
@@ -61,7 +78,7 @@ export default function EligibilityCheckPage() {
     } finally {
       setLoading(false);
     }
-  }, [router, updateUser]);
+  }, [router, applyProfileData]);
 
   useEffect(() => {
     if (!hasHydrated) return;
@@ -93,8 +110,7 @@ export default function EligibilityCheckPage() {
   function handleProfileUpdated(updated: BorrowerProfile, breResult: BreResponse) {
     setProfile(updated);
     setBreErrors(breResult.errors);
-    setActiveLoan(breResult.activeLoan);
-    updateUser(updated);
+    applyProfileData(breResult);
   }
 
   function handleSalarySlipUploaded(doc: SalarySlipDocument) {
@@ -107,7 +123,11 @@ export default function EligibilityCheckPage() {
   }
 
   function handleLoanApplied(loan: LoanApplication) {
-    setActiveLoan(loan);
+    setBlockingLoan(loan);
+    setCanApplyForNewLoan(false);
+    setApplyBlockReason(
+      "Your application is under review. You can apply again only after this loan is fully repaid and closed, or if it is rejected."
+    );
   }
 
   if (!hasHydrated || loading) {
@@ -121,7 +141,6 @@ export default function EligibilityCheckPage() {
   if (!isBorrower || isStaff) return null;
 
   const displayName = profile?.fullName || profile?.email || user?.email;
-  const hasActiveLoan = Boolean(activeLoan);
   const brePassed = Boolean(profile?.brePassed);
   const salaryUploaded = Boolean(profile?.salarySlipUploaded || uploadedDoc);
 
@@ -135,13 +154,22 @@ export default function EligibilityCheckPage() {
 
       <main className="bg-white px-4 py-10 sm:px-6">
         <div className="mx-auto max-w-3xl space-y-6">
-          {hasActiveLoan && activeLoan && (
+          {!canApplyForNewLoan && blockingLoan && (
             <ScrollReveal>
-              <LoanSummaryCard loan={activeLoan} />
+              <section className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                {applyBlockReason}
+                <Link
+                  href={ROUTES.dashboard}
+                  className="mt-2 block font-medium text-brand-600 hover:underline"
+                >
+                  View loan status on dashboard →
+                </Link>
+              </section>
+              <LoanSummaryCard loan={blockingLoan} />
             </ScrollReveal>
           )}
 
-          {!hasActiveLoan && (
+          {canApplyForNewLoan && (
             <>
               <AnimatedPanel show={brePassed}>
                 <section className="rounded-md border border-emerald-200 bg-emerald-50 p-5">

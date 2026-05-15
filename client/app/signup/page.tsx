@@ -1,11 +1,20 @@
 "use client";
 
-import axios from "axios";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useState } from "react";
-import { Alert, AuthCard, Field } from "@/components/auth-form";
+import {
+  AnimatedAuthAlert,
+  AuthCard,
+  Field,
+  PasswordField,
+} from "@/components/auth-form";
 import { getPostLoginPath, signup } from "@/lib/api";
+import {
+  getAuthErrorMessage,
+  MIN_PASSWORD_LENGTH,
+  validatePasswordClient,
+} from "@/lib/auth-errors";
 import { getRedirectTarget, ROUTES } from "@/lib/navigation";
 import { useAuthStore } from "@/stores/auth-store";
 
@@ -23,6 +32,13 @@ function SignupForm() {
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
+
+    const passwordError = validatePasswordClient(password);
+    if (passwordError) {
+      setError(passwordError);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -30,11 +46,7 @@ function SignupForm() {
       setSession(data.token, data.user);
       router.push(getPostLoginPath(data.user, redirectTo));
     } catch (err: unknown) {
-      const message =
-        axios.isAxiosError(err) && err.response?.data?.message
-          ? String(err.response.data.message)
-          : "Signup failed. Please try again.";
-      setError(message);
+      setError(getAuthErrorMessage(err, "Signup failed. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -53,18 +65,18 @@ function SignupForm() {
             placeholder="you@example.com"
             required
           />
-          <Field
+          <PasswordField
             label="Password"
             id="password"
-            type="password"
             value={password}
             onChange={setPassword}
-            placeholder="At least 6 characters"
+            placeholder={`At least ${MIN_PASSWORD_LENGTH} characters`}
             required
-            minLength={6}
+            minLength={MIN_PASSWORD_LENGTH}
+            autoComplete="new-password"
           />
 
-          {error && <Alert type="error" message={error} />}
+          <AnimatedAuthAlert message={error} />
 
           <button
             type="submit"
